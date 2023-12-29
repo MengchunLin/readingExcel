@@ -41,6 +41,7 @@ btn.pack()
 # root.mainloop()
 
 print("path name",file_path)
+print("aaaa")
 #新增一個txt檔
 f=open('data.txt', mode='w')
 
