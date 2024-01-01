@@ -29,10 +29,7 @@ btn = tk.Button(root,
 #     root.destroy()
 
 # btn.config(command=close_window)
-
-
 btn.pack()
-
 root.mainloop()
 print("path name",file_path)
 
@@ -66,26 +63,25 @@ sheet=wb.sheets[4]
 f.write(sheet.range('C2').value+'\n')
 
 #鑽孔地質圖元數(分層數)，不可為 0
-df_dict = pd.read_excel(file_path, sheet_name=None)
-
-# 获取sheet的名字列表
-sheet_names = list(df_dict.keys())
-print(sheet_names)
-
-# 如果要读取第8个sheet，可以通过索引或者名字
-sheet_index = 8  # 由于Python索引从0开始，所以这里是7
-sheet_name = '岩石或土壤性質描述'  # 如果知道sheet的名字，可以直接使用名字
-
-# 通过索引读取第8个sheet
-df_sheet_8_by_index = df_dict[sheet_names[sheet_index]]
-
-# 通过名字读取第8个sheet
-df_sheet_8_by_name = df_dict[sheet_name]
+df=pd.read_excel(file_path,sheet_name=8)
+row_count=df.shape[0]
+f.write(str(row_count)+'\n')
 
 #GL- 地質圖元代碼的 ASCII 內碼
-f.write(str(len(df_sheet_8_by_name)) + '\n')
-# 关闭工作簿
+first_iteration = True
+for index, row in df.iterrows():
+    num=row['地質圖元代碼']
+    if not first_iteration and pd.notna(num):
+        sheet_name=21
+        value=row['AutoLog的ASCII碼']
+        code_mapping={num:value}
+        f.write(f"{str(row['下限深度'])} {value}\n")
+    first_iteration = False
+
+
+
+# 關閉工作簿
 wb.close()
 
-# 关闭Excel应用程序
+# 關閉Excel應用程序
 app.quit()
