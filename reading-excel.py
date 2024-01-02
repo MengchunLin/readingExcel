@@ -69,14 +69,25 @@ f.write(str(row_count)+'\n')
 
 #GL- 地質圖元代碼的 ASCII 內碼
 first_iteration = True
+output = {}
+#GL- 地質圖元代碼的 ASCII 內碼
+first_iteration = True
 for index, row in df.iterrows():
+    sheet=wb.sheets[8]
     num=row['地質圖元代碼']
     if not first_iteration and pd.notna(num):
-        sheet_name=21
-        value=row['AutoLog的ASCII碼']
-        code_mapping={num:value}
-        f.write(f"{str(row['下限深度'])} {value}\n")
+        print(num)
+        sheet=wb.sheets[21]
+        row_mapping={"code":"ASCII"}
+        if num=='code':
+            print('ASCII')
+        # code_mapping={num:value}
+        # f.write(f"{str(row['下限深度'])} {value}\n")
+   
     first_iteration = False
+
+
+first_iteration = False
 
 
 
