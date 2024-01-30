@@ -48,7 +48,6 @@ sheet_names = xl.sheet_names
 # 印出每個工作表的資料
 p0=APoint(0,0)
 for index, sheet_name in enumerate(sheet_names):
-
     if index != 0:
         start_point=0
         end_point=start_point+10
@@ -58,13 +57,17 @@ for index, sheet_name in enumerate(sheet_names):
         text = acad.model.AddText(text_value, APoint(0 + index * distance, 0), 2.5)
 
         #畫孔位-水平
-        
-        row_U='U'
-        df=pd.read_excel(file_path, usecols=[row_U])
+        for layer_index, row in df.iterrows():
+            Layer=row['Layer']
+            if layer_index!=0:
+                if not pd.isna(Layer):
+            
+                    print(Layer)
 
-        print(df)
-        #line_horizontal=acad.model.AddLine(start_point, end_point)
 
+            
+    
+         
 
 # 退出 Excel 應用程式
 app.quit()
