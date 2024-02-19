@@ -11,6 +11,11 @@ Upper_depth = 5
 Lower_depth = 0
 distance=50
 
+#放大倍數
+scale_factor=5
+#放大係數
+scale_index=distance*scale_factor
+
 # 連接到 Excel 應用程式
 app = xw.App()
 
@@ -62,9 +67,9 @@ for index, sheet_name in enumerate(sheet_names):
         # 鑽孔名稱
         df = pd.read_excel(xl, sheet_name)
         text_value = f"{sheet_name}"  # 使用 f-string 來格式化文字
-        text = acad.model.AddText(text_value, APoint(0 + index * distance, 5), 2.5)
-        p1 = APoint(index * distance, 0)
-        p2 = APoint(index * distance + 5, 0)
+        text = acad.model.AddText(text_value, APoint(0 + index * scale_index, 5*scale_factor), 2.5*scale_factor)
+        p1 = APoint(index * scale_index, 0)
+        p2 = APoint(index * scale_index + 5, 0)
         #acad.model.AddLine(p1, p2) 
         
         #畫孔位
@@ -76,10 +81,10 @@ for index, sheet_name in enumerate(sheet_names):
             # Layer列數字迭代
             if layer_index != 0:
                 if not pd.isna(Layer):
-                    p1=APoint(index*distance,-previous_layer)
-                    p2=APoint(index*distance+5,-previous_layer)
-                    p3=APoint(index*distance,-Layer)
-                    p4=APoint(index*distance+5,-Layer)
+                    p1=APoint(index*distance*scale_factor,-previous_layer*scale_factor)
+                    p2=APoint((index*distance+5)*scale_factor,-previous_layer*scale_factor)
+                    p3=APoint(index*distance*scale_factor,-Layer*scale_factor)
+                    p4=APoint((index*distance+5)*scale_factor,-Layer*scale_factor)
 
                 previous_layer = Layer
                 point=[p1.x,p1.y,
