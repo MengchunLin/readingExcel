@@ -105,7 +105,7 @@ for index, sheet_name in enumerate(sheet_names):
         next_col_index = col_index + 1
         next_col_data = df.iloc[row_index, next_col_index]
         GWL_point=APoint(index*distance*scale_factor_w-10*scale_factor_w,-next_col_data*scale_factor_h)
-        block_path = 'C:\\Users\\Janet\\Desktop\\readingExcel\\水位.dwg'
+        block_path = 'C:\\Users\\Administrator\\Desktop\\readingExcel-main\\水位.dwg'
 
         acad.model.InsertBlock(GWL_point, block_path, 1.5*scale_factor_w, 1.5*scale_factor_w, 1.5*scale_factor_w, 0)
 
@@ -134,25 +134,28 @@ for index, sheet_name in enumerate(sheet_names):
                        p3.x,p3.y,
                        p1.x,p1.y]
                 point_double=array.array('d',point)
-                
-                sq=acad.model.AddLightWeightPolyline(point_double)
+                sq = acad.model.AddPolyline(point_double)
+            #    test
+
+               
+
                 # Convert depth to a numeric type
                 depth = pd.to_numeric(depth, errors='coerce')
                 
                 #hatch
-                def variants(object):
-                    return win32com.client.VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_DISPATCH, (object))
-                out_loop=[]
-                
-                out_loop.append(sq)
-                outer=variants(out_loop)
-                hatch = acad.model.AddHatch(0, "1", True)
-                hatch.AppendOuterLoop([sq])
+                # def variants(object):
+                #     return win32com.client.VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_DISPATCH, (object))
+                # out_loop=[]
+                # points = [p1, p2, p4, p3]
+                # point_strings = ["{},{}".format(point.x, point.y) for point in points]
+                # acad.model.AddHatch(0, "Solid", True, [point_strings])
 
-                # hatch_points = [p1, p2, p3, p4]
-                # hatch = acad.model.AddHatch(0, 'Solid', False)
-                # hatch.AppendOuterLoop(hatch_points)
-                # hatch.EvaluateHatch(True)
+
+                # hatch_points = [p1, p2, p4, p3]
+            #    sq型態問題
+                outerLoop = win32com.client.VARIANT(pythoncom.VT_ARRAY|pythoncom.VT_DISPATCH,[sq])
+                hatchobj = acad.model.AddHatch(0, 'Solid', True).AppendOuterLoop([sq])
+                # hatchobj.Evaluate()
 
 
                 #深度迭代
