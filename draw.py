@@ -12,7 +12,7 @@ import pythoncom
 file_path = ""
 Upper_depth = 5
 Lower_depth = 0
-distance=50
+distance=25
 hole_width=5
 #ruler
 ruler_top=0
@@ -24,16 +24,29 @@ scale_factor_w=50
 
 # 連接到 Excel 應用程式
 app = xw.App()
-
 # 使用 Tkinter 檔案對話框選擇檔案
 root = tk.Tk()
 root.title('選擇檔案')
 root.geometry('300x200')
 
+#輸入框
+label = tk.Label(root, text="長度比例:")
+label.pack()
+entry = tk.Entry(root)
+entry.pack()
+
+label = tk.Label(root, text="寬度比例:")
+label.pack()
+entry = tk.Entry(root)
+entry.pack()
+
 def show():
-    global file_path
+    global file_path,scale_factor_h, scale_factor_w
     file_path = filedialog.askopenfilename()
+    scale_factor_h = float(entry.get())
+    scale_factor_w = float(entry.get())
     root.destroy()  # 選擇檔案後關閉 Tkinter 根視窗
+
 def read_excel_cell(file_path, sheet_name, row_index, col_name):
     # 讀取 Excel 檔案中特定儲存格的值
     df = pd.read_excel(file_path, sheet_name=sheet_name)
@@ -189,7 +202,7 @@ for index, sheet_name in enumerate(sheet_names):
                                 
                 nan_encountered = False
                 if not pd.isna(spt_n):
-                    spt_text = round((spt_n))
+                    spt_text = spt_n
                     text = acad.AddText(spt_text, APoint(index * distance*scale_factor_w + 7 * scale_factor_w, -depth * scale_factor_h), 1.5 * scale_factor_w)
                 else:
                     nan_encountered = True
