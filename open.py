@@ -13,7 +13,7 @@ file_path = ""
 Upper_depth = 5
 Lower_depth = 0
 distance=25
-hole_width=5
+hole_width=2
 #ruler
 ruler_top=0
 ruler_bottom=0
@@ -21,6 +21,7 @@ ruler_bottom=0
 #放大倍數
 scale_factor_h=0
 scale_factor_w=0
+
 
 # 連接到 Excel 應用程式
 app = xw.App()
@@ -96,9 +97,17 @@ def vtfloat(lst):
 
 for index, sheet_name in enumerate(sheet_names):
     #skip the first sheet
+    N_1=0
+    N_2=0
+    E_1=0
+    E_2=0
     if index != 0:
         start_point = 0
         end_point = start_point + 10
+        # insert_point=APoint(0,0)
+        # word_height=0
+        # text_value=''
+        # text=acad.Addtext(text_value,insert_point,word_height)
  #------------------------------------------------------------------------------------------------------------------------------------
         #孔頂高
         df = pd.read_excel(xl, sheet_name)
@@ -110,23 +119,36 @@ for index, sheet_name in enumerate(sheet_names):
         #print(Ground_EL)
 #------------------------------------------------------------------------------------------------------------------------------------
         #位置distance
-        row_index, col_index = np.where(df == 'N')
-        col_index = col_index[0]
-        row_index = row_index[0]
-        next_col_index = col_index + 1
-        N=df.iloc[row_index, next_col_index]
-        row_index, col_index = np.where(df == 'E')
-        col_index = col_index[0]
-        row_index = row_index[0]
-        next_col_index = col_index + 1
-        E = df.iloc[row_index, next_col_index]
-        print(E)
+        if E_2==0:
+            distance=2*scale_factor_w
+        else:
+            row_index, col_index = np.where(df == 'N')
+            col_index = col_index[0]
+            row_index = row_index[0]
+            next_col_index = col_index + 1
+            N_2=df.iloc[row_index, next_col_index]
+            row_index, col_index = np.where(df == 'E')
+            col_index = col_index[0]
+            row_index = row_index[0]
+            next_col_index = col_index + 1
+            E_2 = df.iloc[row_index, next_col_index]
+            distance+=pow(pow(E_2-E_1,2)+pow(N_2-N_1,2),0.5)/1000*scale_factor_w
+            E_1=E_2
+            N_1=N_2
+        print(distance)
+
+
  #------------------------------------------------------------------------------------------------------------------------------------
-        # 鑽孔名稱 (hole_width/2*scale_factor)
+        # 鑽孔名稱 (hole_width/2*scale_factor))
         text_value = f"{sheet_name}"  # 使用 f-string 來格式化文字
-        text_width = len(text_value) * 2.5 * scale_factor_w 
-        center_x = (index * scale_factor_w*distance) 
-        text = acad.AddText(text_value, APoint(center_x, 5*scale_factor_h,0), 2.5*scale_factor_w)
+        word_height=2
+        #text_width = len(text_value) * 2.5 * scale_factor_w 
+        insert_point=APoint(index *distance*scale_factor_w, Ground_EL*scale_factor_h,Ground_EL*scale_factor_h) 
+        text = acad.AddText(text_value,insert_point, 2*scale_factor_w)
+        text.Alignment=7
+        text.TextAlignmentPoint = insert_point
+        print(insert_point) 
+
  #------------------------------------------------------------------------------------------------------------------------------------
         #土層深度
         text_value='Depth(m)'
@@ -206,7 +228,7 @@ for index, sheet_name in enumerate(sheet_names):
                     hatchobj.PatternScale = 2*scale_factor_w  # 设置填充线比例为 2
                     hatchobj.AppendOuterLoop(outerLoop)
                     hatchobj.Evaluate()
-                    if int_hatch_num in [1, 2, 5]:
+                    if int_hatch_num in [1, 2, 5,7]:
                         rotation_angle_degrees = 45/180*3.1415926
                         hatchobj.PatternAngle = rotation_angle_degrees
                 #---------------------------------------------------------------------------------------------------------------------
