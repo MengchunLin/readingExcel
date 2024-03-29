@@ -169,31 +169,31 @@ for index, sheet_name in enumerate(sheet_names):
         p2 = APoint(scale_factor_w*distance + 5, Ground_EL)
  #------------------------------------------------------------------------------------------------------------------------------------       
         #地下水位
-        # row_index, col_index = np.where(df == 'G.W.L.')
-        # col_index = col_index[0]
-        # row_index = row_index[0]
-        # next_col_index = col_index + 1
-        # next_col_data = df.iloc[row_index, next_col_index]
-        # GWL_point=APoint(distance*scale_factor_w-(10*scale_factor_w),-next_col_data*scale_factor_h)
-        # #水位線
-        # GWL_point_end=APoint(distance*scale_factor_w-(10*scale_factor_w)-(3*scale_factor_w),-next_col_data*scale_factor_h)
-        # acad.AddLine(GWL_point,GWL_point_end)
-        # #裝飾線
-        # acad.AddLine(APoint(distance*scale_factor_w-(10*scale_factor_w)-(0.8*scale_factor_w),-next_col_data*scale_factor_h-0.2*scale_factor_h),
-        #              APoint(distance*scale_factor_w-(10*scale_factor_w)-(2.2*scale_factor_w),-next_col_data*scale_factor_h-0.2*scale_factor_h))
-        # acad.AddLine(APoint(distance*scale_factor_w-(10*scale_factor_w)-(1*scale_factor_w),-next_col_data*scale_factor_h-0.4*scale_factor_h),
-        #              APoint(distance*scale_factor_w-(10*scale_factor_w)-(2*scale_factor_w),-next_col_data*scale_factor_h-0.4*scale_factor_h))
-        # #箭頭
-        # arrow_start=APoint((GWL_point.x+GWL_point_end.x)/2,-next_col_data*scale_factor_h)
-        # acad.AddLine(arrow_start,APoint(arrow_start.x+(0.5*scale_factor_h/pow(3,0.5)),arrow_start.y+(0.5*scale_factor_h)))
-        # acad.AddLine(arrow_start,APoint(arrow_start.x-(0.5*scale_factor_h/pow(3,0.5)),arrow_start.y+(0.5*scale_factor_h)))
-        # acad.AddLine(APoint(arrow_start.x+(0.5*scale_factor_h/pow(3,0.5)),arrow_start.y+(0.5*scale_factor_h)),
-        #              APoint(arrow_start.x-(0.5*scale_factor_h/pow(3,0.5)),arrow_start.y+(0.5*scale_factor_h)))
-        # alignment = 1
-        # text_position = APoint(arrow_start.x-5*scale_factor_w, arrow_start.y + 0.7*scale_factor_h)
-        # next_col_data_str = str(next_col_data)
-        # text_value='G.W.L.'+'  '+next_col_data_str
-        # text = acad.AddText(text_value, text_position,1.5*scale_factor_w)
+        row_index, col_index = np.where(df == 'G.W.L.')
+        col_index = col_index[0]
+        row_index = row_index[0]
+        next_col_index = col_index + 1
+        GWL = df.iloc[row_index, next_col_index]
+        GWL_point=APoint(distance*scale_factor_w-(6*scale_factor_w),GWL*scale_factor_h)
+        #水位線
+        GWL_point_end=APoint(distance*scale_factor_w-(10*scale_factor_w)-(5*scale_factor_w),GWL*scale_factor_h)
+        acad.AddLine(GWL_point,GWL_point_end)
+        #裝飾線
+        acad.AddLine(APoint(distance*scale_factor_w-(10*scale_factor_w)-(0.6*scale_factor_w),GWL*scale_factor_h-0.2*scale_factor_h),
+                     APoint(distance*scale_factor_w-(10*scale_factor_w)-(2*scale_factor_w),GWL*scale_factor_h-0.2*scale_factor_h))
+        acad.AddLine(APoint(distance*scale_factor_w-(10*scale_factor_w)-(0.8*scale_factor_w),GWL*scale_factor_h-0.4*scale_factor_h),
+                     APoint(distance*scale_factor_w-(10*scale_factor_w)-(1.8*scale_factor_w),GWL*scale_factor_h-0.4*scale_factor_h))
+        #箭頭
+        arrow_start=APoint((GWL_point.x+GWL_point_end.x)/2,GWL*scale_factor_h)
+        acad.AddLine(arrow_start,APoint(arrow_start.x+(0.5*scale_factor_h/pow(3,0.5)),arrow_start.y+(0.5*scale_factor_h)))
+        acad.AddLine(arrow_start,APoint(arrow_start.x-(0.5*scale_factor_h/pow(3,0.5)),arrow_start.y+(0.5*scale_factor_h)))
+        acad.AddLine(APoint(arrow_start.x+(0.5*scale_factor_h/pow(3,0.5)),arrow_start.y+(0.5*scale_factor_h)),
+                     APoint(arrow_start.x-(0.5*scale_factor_h/pow(3,0.5)),arrow_start.y+(0.5*scale_factor_h)))
+        alignment = 1
+        text_position = APoint(arrow_start.x-5*scale_factor_w, arrow_start.y + 0.7*scale_factor_h)
+        next_col_data_str = str(GWL)
+        text_value='G.W.L.'+'  '+next_col_data_str
+        text = acad.AddText(text_value, text_position,0.8*scale_factor_w)
  #------------------------------------------------------------------------------------------------------------------------------------ 
         #畫孔位
         #讀取Layer列的數字
@@ -289,16 +289,18 @@ for i in range(ruler_top, ruler_bottom,-1):
         # 画长刻度线
         acad.AddLine(APoint(0, i * scale_factor_h), APoint(2 * scale_factor_w, i * scale_factor_h))
         text=i/10*10
-        acad.AddText(text,APoint(3 * scale_factor_w+4, i * scale_factor_h-(1.5 * scale_factor_w/2)),1 * scale_factor_w)
+        insert_point=APoint(3 * scale_factor_w+4, i * scale_factor_h)
+        text=acad.AddText(str(text),insert_point,1 * scale_factor_w)
         text.Alignment=9
-        #text.TextAlignmentPoint = insert_point
+        text.TextAlignmentPoint = insert_point
     elif i % 5 == 0:
         # 画中等长度的刻度线
         acad.AddLine(APoint(0, i * scale_factor_h), APoint(1 * scale_factor_w, i * scale_factor_h))
         text=i/5*5
-        acad.AddText(text,APoint(3 * scale_factor_w+4,i * scale_factor_h-(1.5 * scale_factor_w/2)),1 * scale_factor_w)
+        insert_point=APoint(3 * scale_factor_w+4,i * scale_factor_h)
+        text=acad.AddText(str(text),insert_point,1 * scale_factor_w)
         text.Alignment=9
-        #text.TextAlignmentPoint = insert_point
+        text.TextAlignmentPoint = insert_point
     else:
         # 画短刻度线
         acad.AddLine(APoint(0, i * scale_factor_h), APoint(0.5 * scale_factor_w, i * scale_factor_h))
