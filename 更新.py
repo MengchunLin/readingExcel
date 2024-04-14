@@ -14,6 +14,10 @@ Upper_depth = 5
 Lower_depth = 0
 distance=25
 hole_width=2
+Ground_EL=0
+num_lists = 0
+lists = []
+pre_num=0
 #ruler
 ruler_top=0
 ruler_bottom=0
@@ -101,6 +105,7 @@ for index, sheet_name in enumerate(sheet_names):
     N_2=0
     E_1=0
     E_2=0
+    num_lists+=1
     if index != 0:
  #------------------------------------------------------------------------------------------------------------------------------------
         #孔頂高
@@ -109,7 +114,7 @@ for index, sheet_name in enumerate(sheet_names):
         col_index = col_index[0]
         row_index = row_index[0]
         next_col_index = col_index + 1
-        Ground_EL = df.iloc[row_index, next_col_index]
+        Ground_EL= df.iloc[row_index, next_col_index]
         #print(Ground_EL)
 #------------------------------------------------------------------------------------------------------------------------------------
         #位置distance
@@ -176,36 +181,39 @@ for index, sheet_name in enumerate(sheet_names):
         GWL = df.iloc[row_index, next_col_index]
         GWL_point=APoint(distance*scale_factor_w-(6*scale_factor_w),GWL*scale_factor_h)
         #水位線
-        GWL_point_end=APoint(distance*scale_factor_w-(10*scale_factor_w)-(5*scale_factor_w),GWL*scale_factor_h)
+        GWL_point_end=APoint(distance*scale_factor_w-(8*scale_factor_w),GWL*scale_factor_h)
         acad.AddLine(GWL_point,GWL_point_end)
         #裝飾線
-        acad.AddLine(APoint(distance*scale_factor_w-(10*scale_factor_w)-(0.6*scale_factor_w),GWL*scale_factor_h-0.2*scale_factor_h),
-                     APoint(distance*scale_factor_w-(10*scale_factor_w)-(2*scale_factor_w),GWL*scale_factor_h-0.2*scale_factor_h))
-        acad.AddLine(APoint(distance*scale_factor_w-(10*scale_factor_w)-(0.8*scale_factor_w),GWL*scale_factor_h-0.4*scale_factor_h),
-                     APoint(distance*scale_factor_w-(10*scale_factor_w)-(1.8*scale_factor_w),GWL*scale_factor_h-0.4*scale_factor_h))
+        acad.AddLine(APoint(distance*scale_factor_w-(6.5*scale_factor_w),GWL*scale_factor_h-0.2*scale_factor_h),
+                     APoint(distance*scale_factor_w-(7.5*scale_factor_w),GWL*scale_factor_h-0.2*scale_factor_h))
+        acad.AddLine(APoint(distance*scale_factor_w-(6.6*scale_factor_w),GWL*scale_factor_h-0.4*scale_factor_h),
+                     APoint(distance*scale_factor_w-(7.4*scale_factor_w),GWL*scale_factor_h-0.4*scale_factor_h))
         #箭頭
         arrow_start=APoint((GWL_point.x+GWL_point_end.x)/2,GWL*scale_factor_h)
         acad.AddLine(arrow_start,APoint(arrow_start.x+(0.5*scale_factor_h/pow(3,0.5)),arrow_start.y+(0.5*scale_factor_h)))
         acad.AddLine(arrow_start,APoint(arrow_start.x-(0.5*scale_factor_h/pow(3,0.5)),arrow_start.y+(0.5*scale_factor_h)))
         acad.AddLine(APoint(arrow_start.x+(0.5*scale_factor_h/pow(3,0.5)),arrow_start.y+(0.5*scale_factor_h)),
                      APoint(arrow_start.x-(0.5*scale_factor_h/pow(3,0.5)),arrow_start.y+(0.5*scale_factor_h)))
-        alignment = 1
-        text_position = APoint(arrow_start.x-5*scale_factor_w, arrow_start.y + 0.7*scale_factor_h)
         next_col_data_str = str(GWL)
-        text_value='G.W.L.'+'  '+next_col_data_str
-        text = acad.AddText(text_value, text_position,0.8*scale_factor_w)
+        text='G.W.L.'+'  '+next_col_data_str
+        insert_point=APoint((GWL_point.x+GWL_point_end.x)/2,arrow_start.y+(0.5*scale_factor_h))
+        text=acad.AddText(text,insert_point, 0.6*scale_factor_w)
+        text.Alignment=13
+        text.TextAlignmentPoint = insert_point
  #------------------------------------------------------------------------------------------------------------------------------------ 
         #畫孔位
         #讀取Layer列的數字
         previous_layer = 0
         y1=Ground_EL
+        depest=0
+        num_element=0
         for layer_index, row in df.iterrows():
             Layer = row['Layer']
             hatch_num=row['LOG']
             depth=row['Depth']
             spt_n = row['N']
-            #print(max(depth))
-                
+
+            
             # Layer列數字迭代
             if layer_index != 0:
                 
@@ -242,13 +250,32 @@ for index, sheet_name in enumerate(sheet_names):
                     if int_hatch_num in [1, 2, 5,6,7,11]:
                         rotation_angle_degrees = 45/180*3.1415926
                         hatchobj.PatternAngle = rotation_angle_degrees
+                    # num_element+=1
+                    
+                    # if pre_num!=num_element:
+                    #     #print(num_element)
+                    #     pre_num=num_element
+                # for _ in range(num_lists):
+                #     new_list = []
+                #     #num_elements = int(input("输入要在列表中添加的元素数量：")) # 在这里可以改为你需要的方式来指定每个列表的元素数量
+                #     for _ in range(num_element):
+                #         element = input(hatch_num) # 在这里可以改为你需要的方式来获取要添加的元素
+                #         new_list.append(element)
+                #     lists.append(new_list)
+                # lists = [[] for _ in range(num_lists)]
+                #print(lists)
+
+                # 打印所有列表
+                # for i, lst in enumerate(lists):
+                #     print(f"列表 {i+1}: {lst}")
+
                 #---------------------------------------------------------------------------------------------------------------------
                 #深度迭代
                 if Ground_EL>ruler_top:
                     ruler_top=Ground_EL
 
-                if (Ground_EL-depth)<ruler_bottom:
-                    ruler_bottom=(Ground_EL-depth)
+                if depest<ruler_bottom:
+                    ruler_bottom=depest
 
                 # Check if depth is not NaN
                 #分層深度
@@ -262,6 +289,8 @@ for index, sheet_name in enumerate(sheet_names):
                     nan_encountered = False
                 #spt
                 if not pd.isna(depth):
+                    if Ground_EL-depth<depest:
+                        depest=Ground_EL-depth
                     if not pd.isna(spt_n):
                         text_value=spt_n
                         insert_point=APoint((distance+hole_width+0.5)*scale_factor_w, (Ground_EL-depth)*scale_factor_h,(Ground_EL-depth)*scale_factor_h)
@@ -272,10 +301,20 @@ for index, sheet_name in enumerate(sheet_names):
                     nan_encountered = True
                     break
 
-#ruler
+        acad.AddLine(APoint(distance*scale_factor_w,Ground_EL*scale_factor_h),APoint((distance+hole_width)*scale_factor_w,Ground_EL*scale_factor_h))
+        acad.AddLine(APoint((distance+hole_width)*scale_factor_w,Ground_EL*scale_factor_h),APoint((distance+hole_width)*scale_factor_w,depest*scale_factor_h))
+        acad.AddLine(APoint((distance+hole_width)*scale_factor_w,depest*scale_factor_h),APoint(distance*scale_factor_w,depest*scale_factor_h))
+        acad.AddLine(APoint(distance*scale_factor_w,depest*scale_factor_h),APoint(distance*scale_factor_w,Ground_EL*scale_factor_h))
+#print(num_lists)
+# df = pd.read_excel(xl, sheet_name)
+# i=0
+# lists = [[] for _ in range(n)]
+# for _ in lists:
+#     list[_]=[1]
+# #ruler
 
 
-ruler_bottom=round(ruler_bottom+1)
+ruler_bottom=round(ruler_bottom-1)
 ruler_top=round(ruler_top+1)
 ruler_length = round((ruler_top-ruler_bottom))
 insertion_point = APoint(0, ruler_top)
