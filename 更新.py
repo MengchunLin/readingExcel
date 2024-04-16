@@ -305,14 +305,26 @@ for index, sheet_name in enumerate(sheet_names):
         acad.AddLine(APoint((distance+hole_width)*scale_factor_w,Ground_EL*scale_factor_h),APoint((distance+hole_width)*scale_factor_w,depest*scale_factor_h))
         acad.AddLine(APoint((distance+hole_width)*scale_factor_w,depest*scale_factor_h),APoint(distance*scale_factor_w,depest*scale_factor_h))
         acad.AddLine(APoint(distance*scale_factor_w,depest*scale_factor_h),APoint(distance*scale_factor_w,Ground_EL*scale_factor_h))
-#print(num_lists)
-# df = pd.read_excel(xl, sheet_name)
-# i=0
-# lists = [[] for _ in range(n)]
-# for _ in lists:
-#     list[_]=[1]
-# #ruler
 
+#土層紀錄------------------------------------------------------------------------------------------------------------------------------------------------------
+all_lists = []  # 創建一個空列表來存儲所有創建的列表
+for index, sheet_name in enumerate(sheet_names):
+    if index != 0:
+        new_list = []  # 在每次迴圈開始時創建一個新列表
+        for layer_index, row in df.iterrows():
+            df = pd.read_excel(xl, sheet_name)
+            LOG = row['LOG']
+            if layer_index != 0:
+                if not pd.isna(LOG):
+                    new_list.append(LOG)  # 將每個 LOG 添加到新列表中
+        all_lists.append(new_list)  # 將新列表添加到 all_lists 中
+
+# 在迴圈外部檢視結果
+for i, sheet_name in enumerate(sheet_names):
+    if i != 0:
+        print(sheet_name + ": " + str(all_lists[i-1]))  # 輸出 sheet_name 和相應的列表
+
+#---------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ruler_bottom=round(ruler_bottom-1)
 ruler_top=round(ruler_top+1)
@@ -329,7 +341,7 @@ for i in range(ruler_top, ruler_bottom,-1):
         acad.AddLine(APoint(0, i * scale_factor_h), APoint(2 * scale_factor_w, i * scale_factor_h))
         text=i/10*10
         insert_point=APoint(3 * scale_factor_w+4, i * scale_factor_h)
-        text=acad.AddText(str(text),insert_point,1 * scale_factor_w)
+        text=acad.AddText(str(text),insert_point,0.7 * scale_factor_w)
         text.Alignment=9
         text.TextAlignmentPoint = insert_point
     elif i % 5 == 0:
@@ -337,7 +349,7 @@ for i in range(ruler_top, ruler_bottom,-1):
         acad.AddLine(APoint(0, i * scale_factor_h), APoint(1 * scale_factor_w, i * scale_factor_h))
         text=i/5*5
         insert_point=APoint(3 * scale_factor_w+4,i * scale_factor_h)
-        text=acad.AddText(str(text),insert_point,1 * scale_factor_w)
+        text=acad.AddText(str(text),insert_point,0.7 * scale_factor_w)
         text.Alignment=9
         text.TextAlignmentPoint = insert_point
     else:
