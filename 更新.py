@@ -8,6 +8,7 @@ import array
 import win32com.client
 import math
 import pythoncom
+from collections import Counter
 
 file_path = ""
 Upper_depth = 5
@@ -18,6 +19,8 @@ Ground_EL=0
 num_lists = 0
 lists = []
 pre_num=0
+example_list=[]
+example_list_int=[]
 #ruler
 ruler_top=0
 ruler_bottom=0
@@ -26,6 +29,53 @@ ruler_bottom=0
 scale_factor_h=0
 scale_factor_w=0
 
+#dictionary
+# dictionary={'0.0':'回填土',
+#             '1.0':'良好、不良級配卵礫石、砂礫石',
+#             '2.0':'良好、不良級配卵礫石、砂礫石',
+#             '3.0':'良好、不良級配卵礫石、砂礫石',
+#             '4.0':'良好、不良級配砂土、礫砂土',
+#             '5.0':'粉質砂土',
+#             '6.0':'黏質砂土',
+#             '7.0':'低至中等塑性無機黏土、低塑性粉質黏土',
+#             '8.0':'黏質粉土、有機黏土',
+#             '9.0':'高塑性無機黏土、中等至高塑性有機黏土',
+#             '10.0':'無機質粉土',
+#             '11.0':'砂質粉土',
+#             '12.0':'安山岩',
+#             '13.0':'卵礫石',
+#             '14.0':'砂岩',
+#             '15.0':'碎屑岩',
+#             '16.0':'粉砂岩',
+#             '17.0':'泥岩',
+#             '18.0':'頁岩',
+#             '19.0':'凝灰岩',
+#             '20.0':'火山碎屑',
+#             '21.0':'崩積層'
+#             }
+dictionary={'0':'回填土',
+            '1':'良好、不良級配卵礫'+'\n'+'石、砂礫石',
+            '2':'良好、不良級配卵石'+'\n'+'、砂礫石',
+            '3':'良好、不良級配卵礫'+'\n'+'石、砂礫石',
+            '4':'良好、不良級配砂土'+'\n'+'、礫砂土',
+            '5':'粉質砂土',
+            '6':'黏質砂土',
+            '7':'低至中等塑性無機黏'+'\n'+'土、低塑性粉質黏土',
+            '8':'黏質粉土、有機黏土',
+            '9':'高塑性無機黏土、中等至高塑性有機黏土',
+            '10':'無機質粉土',
+            '11':'砂質粉土',
+            '12':'安山岩',
+            '13':'卵礫石',
+            '14':'砂岩',
+            '15':'碎屑岩',
+            '16':'粉砂岩',
+            '17':'泥岩',
+            '18':'頁岩',
+            '19':'凝灰岩',
+            '20':'火山碎屑',
+            '21':'崩積層'
+            }
 
 # 連接到 Excel 應用程式
 app = xw.App()
@@ -247,28 +297,10 @@ for index, sheet_name in enumerate(sheet_names):
                     hatchobj.PatternScale = 2*scale_factor_w  # 设置填充线比例为 2
                     hatchobj.AppendOuterLoop(outerLoop)
                     hatchobj.Evaluate()
-                    if int_hatch_num in [1, 2, 5,6,7,11]:
+                    if int_hatch_num in [1, 2, 5,6,7,11,21]:
                         rotation_angle_degrees = 45/180*3.1415926
                         hatchobj.PatternAngle = rotation_angle_degrees
-                    # num_element+=1
-                    
-                    # if pre_num!=num_element:
-                    #     #print(num_element)
-                    #     pre_num=num_element
-                # for _ in range(num_lists):
-                #     new_list = []
-                #     #num_elements = int(input("输入要在列表中添加的元素数量：")) # 在这里可以改为你需要的方式来指定每个列表的元素数量
-                #     for _ in range(num_element):
-                #         element = input(hatch_num) # 在这里可以改为你需要的方式来获取要添加的元素
-                #         new_list.append(element)
-                #     lists.append(new_list)
-                # lists = [[] for _ in range(num_lists)]
-                #print(lists)
-
-                # 打印所有列表
-                # for i, lst in enumerate(lists):
-                #     print(f"列表 {i+1}: {lst}")
-
+                    example_list.append(hatch_num)
                 #---------------------------------------------------------------------------------------------------------------------
                 #深度迭代
                 if Ground_EL>ruler_top:
@@ -305,6 +337,60 @@ for index, sheet_name in enumerate(sheet_names):
         acad.AddLine(APoint((distance+hole_width)*scale_factor_w,Ground_EL*scale_factor_h),APoint((distance+hole_width)*scale_factor_w,depest*scale_factor_h))
         acad.AddLine(APoint((distance+hole_width)*scale_factor_w,depest*scale_factor_h),APoint(distance*scale_factor_w,depest*scale_factor_h))
         acad.AddLine(APoint(distance*scale_factor_w,depest*scale_factor_h),APoint(distance*scale_factor_w,Ground_EL*scale_factor_h))
+example_list=list(set(example_list))
+for i in example_list:
+    example_list_int.append(int(i))
+print(example_list_int)
+count=str(len(example_list_int))
+#num=len(example_list_int)
+#print(dictionary[example_list[1]])
+# 將下面這段程式碼加入到你的程式中，用來印出字典中對應的值
+n=0
+i=0
+square_h=1.5
+text='圖例:'
+p1=APoint(-32*scale_factor_w,(-square_h)*scale_factor_w)
+p2=APoint(-30.5*scale_factor_w,(-square_h)*scale_factor_w)
+p3=APoint(-30.5*scale_factor_w,(-2*square_h)*scale_factor_w)
+p4=APoint(-32*scale_factor_w,(-2*square_h)*scale_factor_w)
+pnts=[p1.x,p1.y,
+      p2.x,p2.y,
+      p3.x,p3.y,
+      p4.x,p4.y,
+      p1.x,p1.y]
+text=acad.AddText(text,APoint(-30*scale_factor_w,0),1*scale_factor_w)
+text.Alignment=6 #TopLeft
+text.TextAlignmentPoint = APoint(-30*scale_factor_w,0)
+
+#字
+for i in example_list_int:
+    # print(dictionary[str(i)])
+    n+=2
+    text=dictionary[str(i)]
+    insert_point=APoint(-30*scale_factor_w,-n*scale_factor_w)
+    print(insert_point)
+    print(text)
+    text=acad.AddText(text,insert_point,1*scale_factor_w)
+    text.Alignment=6 #TopLeft
+    text.TextAlignmentPoint = insert_point
+    i+=1
+
+#圖例框
+for range in (example_list_int):
+    square_h+=2
+    pnts = vtfloat(pnts)
+    sq = msp.AddLightWeightPolyline(pnts)
+    sq.Closed = True
+    depth = pd.to_numeric(depth, errors='coerce')
+    outerLoop = []
+    outerLoop.append(list(sq))
+    outerLoop = vtobj(outerLoop)
+    hatchobj = msp.AddHatch(1, 1, True)
+    hatchobj.PatternScale = 2*scale_factor_w  # 设置填充线比例为 2
+    hatchobj.AppendOuterLoop(outerLoop)
+    hatchobj.Evaluate()
+
+    
 
 #土層紀錄------------------------------------------------------------------------------------------------------------------------------------------------------
 all_lists = []  # 創建一個空列表來存儲所有創建的列表
@@ -322,8 +408,8 @@ for index, sheet_name in enumerate(sheet_names):
 # 在迴圈外部檢視結果
 for i, sheet_name in enumerate(sheet_names):
     if i != 0:
-        print(sheet_name + ": " + str(all_lists[i-1]))  # 輸出 sheet_name 和相應的列表
-
+        #print(sheet_name + ": " + str(all_lists[i-1]))  # 輸出 sheet_name 和相應的列表
+        continue
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ruler_bottom=round(ruler_bottom-1)
@@ -333,9 +419,7 @@ insertion_point = APoint(0, ruler_top)
 #insert_end=APoint(0,ruler_top-ruler_bottom)
 acad.AddLine(insertion_point*scale_factor_h, APoint(0,(ruler_top-ruler_length)*scale_factor_h))
 for i in range(ruler_top, ruler_bottom,-1):
-    #if i==ruler_top:
-        # text=ruler_top
-        # acad.AddText(text,APoint(2 * scale_factor_w+4, i * scale_factor_h-(1.5 * scale_factor_w/2)),1 * scale_factor_w)
+
     if i % 10 == 0:
         # 画长刻度线
         acad.AddLine(APoint(0, i * scale_factor_h), APoint(2 * scale_factor_w, i * scale_factor_h))
