@@ -77,8 +77,6 @@ dictionary={'0':'回填土',
             '21':'崩積層'
             }
 
-# 連接到 Excel 應用程式
-app = xw.App()
 # 使用 Tkinter 檔案對話框選擇檔案
 root = tk.Tk()
 root.title('選擇檔案')
@@ -349,15 +347,7 @@ n=0
 i=0
 square_h=1.5
 text='圖例:'
-p1=APoint(-32*scale_factor_w,(-square_h)*scale_factor_w)
-p2=APoint(-30.5*scale_factor_w,(-square_h)*scale_factor_w)
-p3=APoint(-30.5*scale_factor_w,(-2*square_h)*scale_factor_w)
-p4=APoint(-32*scale_factor_w,(-2*square_h)*scale_factor_w)
-pnts=[p1.x,p1.y,
-      p2.x,p2.y,
-      p3.x,p3.y,
-      p4.x,p4.y,
-      p1.x,p1.y]
+
 text=acad.AddText(text,APoint(-30*scale_factor_w,0),1*scale_factor_w)
 text.Alignment=6 #TopLeft
 text.TextAlignmentPoint = APoint(-30*scale_factor_w,0)
@@ -375,20 +365,34 @@ for i in example_list_int:
     text.TextAlignmentPoint = insert_point
     i+=1
 
+print(example_list_int)
 #圖例框
-for range in (example_list_int):
+n=0
+p1=APoint(-32*scale_factor_w,n*-2*scale_factor_w)
+p2=APoint(-30.5*scale_factor_w,n*-2*scale_factor_w)
+p3=APoint(-30.5*scale_factor_w,n*(-2-2)*scale_factor_w)
+p4=APoint(-32*scale_factor_w,n*(-2-2)*scale_factor_w)
+pnts=[p1.x,p1.y,
+      p2.x,p2.y,
+      p3.x,p3.y,
+      p4.x,p4.y,
+      p1.x,p1.y]
+pnts = vtfloat(pnts)
+
+for i in (example_list_int):
     square_h+=2
-    pnts = vtfloat(pnts)
+    n+=1
     sq = msp.AddLightWeightPolyline(pnts)
     sq.Closed = True
     depth = pd.to_numeric(depth, errors='coerce')
     outerLoop = []
-    outerLoop.append(list(sq))
+    outerLoop.append(sq)
     outerLoop = vtobj(outerLoop)
-    hatchobj = msp.AddHatch(1, 1, True)
+    hatchobj = msp.AddHatch(1, i, True)
     hatchobj.PatternScale = 2*scale_factor_w  # 设置填充线比例为 2
     hatchobj.AppendOuterLoop(outerLoop)
     hatchobj.Evaluate()
+    print(n)
 
     
 
@@ -440,5 +444,3 @@ for i in range(ruler_top, ruler_bottom,-1):
         # 画短刻度线
         acad.AddLine(APoint(0, i * scale_factor_h), APoint(0.5 * scale_factor_w, i * scale_factor_h))
 acad.AddLine(y_start_point,y_end_point)
-# 退出 Excel 應用程式
-app.quit()
