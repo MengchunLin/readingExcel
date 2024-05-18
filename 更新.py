@@ -383,7 +383,7 @@ for range in (example_list_int):
     sq.Closed = True
     depth = pd.to_numeric(depth, errors='coerce')
     outerLoop = []
-    outerLoop.append(list(sq))
+    outerLoop.append(sq)
     outerLoop = vtobj(outerLoop)
     hatchobj = msp.AddHatch(1, 1, True)
     hatchobj.PatternScale = 2*scale_factor_w  # 设置填充线比例为 2
