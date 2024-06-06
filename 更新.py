@@ -147,6 +147,15 @@ def vtobj(obj):
 def vtfloat(lst):
     return win32com.client.VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_R8, lst)
 
+def add_text(acad, text_value, insert_point, text_height, alignment):
+    text = acad.AddText(text_value, insert_point, text_height)
+    text.Alignment = alignment
+    text.TextAlignmentPoint = insert_point
+
+def add_line(acad, start_point, end_point, line_weight=13):
+    line = acad.AddLine(start_point, end_point)
+    line.Lineweight = line_weight
+
 for index, sheet_name in enumerate(sheet_names):
     #skip the first sheet
     N_1=0
@@ -343,55 +352,63 @@ count=str(len(example_list_int))
 #num=len(example_list_int)
 #print(dictionary[example_list[1]])
 # 將下面這段程式碼加入到你的程式中，用來印出字典中對應的值
-n=0
-i=0
-square_h=1.5
-text='圖例:'
-insert_point=APoint(-32*scale_factor_w,0)
-text=acad.AddText(text,insert_point,1*scale_factor_w)
-text.Alignment=6 #TopLeft
+# 定義圖例框位置和大小
+# 定義圖例框位置和大小
+legend_x = -32 * scale_factor_w
+legend_y = 0
+legend_width = 1.5 * scale_factor_w
+legend_height = 1.5 * scale_factor_w  # 每個格子的高度
+
+# 加入圖例標題
+text = '圖例:'
+insert_point = APoint(legend_x, legend_y)
+text = acad.AddText(text, insert_point, 1 * scale_factor_w)
+text.Alignment = 6  # TopLeft
 text.TextAlignmentPoint = insert_point
 
-#字
+# 初始化文字和框的Y坐標
+text_y = legend_y - 2 * scale_factor_h
+box_y = legend_y - 2 * scale_factor_h
+
+# 字和圖例框
 for i in example_list_int:
-    # print(dictionary[str(i)])
-    n+=2
-    text=dictionary[str(i)]
-    insert_point=APoint(-30*scale_factor_w,-n*scale_factor_w)
-    print(insert_point)
-    print(text)
-    text=acad.AddText(text,insert_point,1*scale_factor_w)
-    text.Alignment=6 #TopLeft
-    text.TextAlignmentPoint = insert_point
-    i+=1
+    # 設置文字
+    text = dictionary[str(i)]
+    text_insert_point = APoint(legend_x + legend_width + 0.5 * scale_factor_w, text_y)
+    text_obj = acad.AddText(text, text_insert_point, 1 * scale_factor_w)
+    text_obj.Alignment = 6  # TopLeft
+    text_obj.TextAlignmentPoint = text_insert_point
 
-print(example_list_int)
-n = 0
-p1 = APoint(-32 * scale_factor_w, n * -2 * scale_factor_w)
-p2 = APoint(-30.5 * scale_factor_w, n * -2 * scale_factor_w)
-p3 = APoint(-30.5 * scale_factor_w, n * (-2 - 2) * scale_factor_w)
-p4 = APoint(-32 * scale_factor_w, n * (-2 - 2) * scale_factor_w)
-pnts = [p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y, p1.x, p1.y]
-pnts = pyautocad.types.vtfloat(pnts)
+    # 設置圖例框
+    legend_top_left = APoint(legend_x, box_y)
+    legend_top_right = APoint(legend_x + legend_width, box_y)
+    legend_bottom_right = APoint(legend_x + legend_width, box_y - legend_height)
+    legend_bottom_left = APoint(legend_x, box_y - legend_height)
 
-# square_h在原代码中未定义，假设它是要递增的高度，可以初始化为0
-square_h = 0
+    pnts = [legend_top_left.x, legend_top_left.y,
+            legend_top_right.x, legend_top_right.y,
+            legend_bottom_right.x, legend_bottom_right.y,
+            legend_bottom_left.x, legend_bottom_left.y,
+            legend_top_left.x, legend_top_left.y]
+    pnts = vtfloat(pnts)
 
-for i in example_list_int:
-    square_h += 2
-    n += 1
     sq = msp.AddLightWeightPolyline(pnts)
     sq.Closed = True
-    depth = pd.to_numeric(depth, errors='coerce')
     outerLoop = []
     outerLoop.append(sq)
-    outerLoop = pyautocad.types.vtobj(outerLoop)
-    
+    outerLoop = vtobj(outerLoop)
     hatchobj = msp.AddHatch(1, i, True)
-    hatchobj.PatternScale = 2 * scale_factor_w  # 设置填充线比例为 2
+    hatchobj.PatternScale = 1 * scale_factor_w  # 設置填充線比例為 2
     hatchobj.AppendOuterLoop(outerLoop)
     hatchobj.Evaluate()
-    print(n)
+    if int_hatch_num in [1, 2, 5,6,7,11,21]:
+                        rotation_angle_degrees = 45/180*3.1415926
+                        hatchobj.PatternAngle = rotation_angle_degrees
+
+    # 更新Y坐標
+    text_y -= 2 * scale_factor_h
+    box_y -= 2 * scale_factor_h
+
     
 
 #土層紀錄------------------------------------------------------------------------------------------------------------------------------------------------------
