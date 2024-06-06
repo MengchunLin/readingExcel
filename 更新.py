@@ -347,10 +347,10 @@ n=0
 i=0
 square_h=1.5
 text='圖例:'
-
-text=acad.AddText(text,APoint(-30*scale_factor_w,0),1*scale_factor_w)
+insert_point=APoint(-32*scale_factor_w,0)
+text=acad.AddText(text,insert_point,1*scale_factor_w)
 text.Alignment=6 #TopLeft
-text.TextAlignmentPoint = APoint(-30*scale_factor_w,0)
+text.TextAlignmentPoint = insert_point
 
 #字
 for i in example_list_int:
@@ -366,34 +366,32 @@ for i in example_list_int:
     i+=1
 
 print(example_list_int)
-#圖例框
-n=0
-p1=APoint(-32*scale_factor_w,n*-2*scale_factor_w)
-p2=APoint(-30.5*scale_factor_w,n*-2*scale_factor_w)
-p3=APoint(-30.5*scale_factor_w,n*(-2-2)*scale_factor_w)
-p4=APoint(-32*scale_factor_w,n*(-2-2)*scale_factor_w)
-pnts=[p1.x,p1.y,
-      p2.x,p2.y,
-      p3.x,p3.y,
-      p4.x,p4.y,
-      p1.x,p1.y]
-pnts = vtfloat(pnts)
+n = 0
+p1 = APoint(-32 * scale_factor_w, n * -2 * scale_factor_w)
+p2 = APoint(-30.5 * scale_factor_w, n * -2 * scale_factor_w)
+p3 = APoint(-30.5 * scale_factor_w, n * (-2 - 2) * scale_factor_w)
+p4 = APoint(-32 * scale_factor_w, n * (-2 - 2) * scale_factor_w)
+pnts = [p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y, p1.x, p1.y]
+pnts = pyautocad.types.vtfloat(pnts)
 
-for i in (example_list_int):
-    square_h+=2
-    n+=1
+# square_h在原代码中未定义，假设它是要递增的高度，可以初始化为0
+square_h = 0
+
+for i in example_list_int:
+    square_h += 2
+    n += 1
     sq = msp.AddLightWeightPolyline(pnts)
     sq.Closed = True
     depth = pd.to_numeric(depth, errors='coerce')
     outerLoop = []
     outerLoop.append(sq)
-    outerLoop = vtobj(outerLoop)
+    outerLoop = pyautocad.types.vtobj(outerLoop)
+    
     hatchobj = msp.AddHatch(1, i, True)
-    hatchobj.PatternScale = 2*scale_factor_w  # 设置填充线比例为 2
+    hatchobj.PatternScale = 2 * scale_factor_w  # 设置填充线比例为 2
     hatchobj.AppendOuterLoop(outerLoop)
     hatchobj.Evaluate()
     print(n)
-
     
 
 #土層紀錄------------------------------------------------------------------------------------------------------------------------------------------------------
