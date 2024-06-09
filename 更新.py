@@ -30,29 +30,7 @@ scale_factor_h=0
 scale_factor_w=0
 
 #dictionary
-# dictionary={'0.0':'回填土',
-#             '1.0':'良好、不良級配卵礫石、砂礫石',
-#             '2.0':'良好、不良級配卵礫石、砂礫石',
-#             '3.0':'良好、不良級配卵礫石、砂礫石',
-#             '4.0':'良好、不良級配砂土、礫砂土',
-#             '5.0':'粉質砂土',
-#             '6.0':'黏質砂土',
-#             '7.0':'低至中等塑性無機黏土、低塑性粉質黏土',
-#             '8.0':'黏質粉土、有機黏土',
-#             '9.0':'高塑性無機黏土、中等至高塑性有機黏土',
-#             '10.0':'無機質粉土',
-#             '11.0':'砂質粉土',
-#             '12.0':'安山岩',
-#             '13.0':'卵礫石',
-#             '14.0':'砂岩',
-#             '15.0':'碎屑岩',
-#             '16.0':'粉砂岩',
-#             '17.0':'泥岩',
-#             '18.0':'頁岩',
-#             '19.0':'凝灰岩',
-#             '20.0':'火山碎屑',
-#             '21.0':'崩積層'
-#             }
+
 dictionary={'0':'回填土',
             '1':'良好、不良級配卵礫'+'\n'+'石、砂礫石',
             '2':'良好、不良級配卵石'+'\n'+'、砂礫石',
@@ -101,10 +79,26 @@ def show():
     root.destroy()  # 選擇檔案後關閉 Tkinter 根視窗
 
 def read_excel_cell(file_path, sheet_name, row_index, col_name):
-    # 讀取 Excel 檔案中特定儲存格的值
-    df = pd.read_excel(file_path, sheet_name=sheet_name)
-    value = df.at[row_index, col_name]
+    # Read Excel cell based on column name
+    df = pd.read_excel(file_path, sheet_name=sheet_name, header=None)
+    col_index = df.iloc[0].tolist().index(col_name)
+    value = df.at[row_index, col_index]
     return value
+
+def vtobj(obj):
+    return win32com.client.VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_DISPATCH, obj)
+
+def vtfloat(lst):
+    return win32com.client.VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_R8, lst)
+
+def add_text(acad, text_value, insert_point, text_height, alignment):
+    text = acad.AddText(text_value, insert_point, text_height)
+    text.Alignment = alignment
+    text.TextAlignmentPoint = insert_point
+
+def add_line(acad, start_point, end_point, line_weight=13):
+    line = acad.AddLine(start_point, end_point)
+    line.Lineweight = line_weight
 
 
 btn = tk.Button(root,
@@ -128,7 +122,7 @@ acad =Autocad().ActiveDocument.ModelSpace
 
 # 讀取 Excel 檔案中的所有工作表
 xl = pd.ExcelFile(file_path)
-
+print(f"已選擇檔案: {file_path}")
 # 透過 sheet_names 取得所有工作表的名稱
 sheet_names = xl.sheet_names
 
@@ -141,20 +135,8 @@ y_end=0
 y_start_point= APoint(0, y_start)
 y_end_point = APoint(0, y_end)
 
-def vtobj(obj):
-    return win32com.client.VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_DISPATCH, obj)
 
-def vtfloat(lst):
-    return win32com.client.VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_R8, lst)
 
-def add_text(acad, text_value, insert_point, text_height, alignment):
-    text = acad.AddText(text_value, insert_point, text_height)
-    text.Alignment = alignment
-    text.TextAlignmentPoint = insert_point
-
-def add_line(acad, start_point, end_point, line_weight=13):
-    line = acad.AddLine(start_point, end_point)
-    line.Lineweight = line_weight
 
 for index, sheet_name in enumerate(sheet_names):
     #skip the first sheet
@@ -164,27 +146,16 @@ for index, sheet_name in enumerate(sheet_names):
     E_2=0
     num_lists+=1
     if index != 0:
+        
  #------------------------------------------------------------------------------------------------------------------------------------
         #孔頂高
-        df = pd.read_excel(xl, sheet_name)
-        row_index, col_index = np.where(df == 'Ground EL')
-        col_index = col_index[0]
-        row_index = row_index[0]
-        next_col_index = col_index + 1
-        Ground_EL= df.iloc[row_index, next_col_index]
-        #print(Ground_EL)
+        df = pd.read_excel(xl, sheet_name, header=None)
+        Ground_EL= df.iloc[0,5]
 #------------------------------------------------------------------------------------------------------------------------------------
         #位置distance
-        row_index, col_index = np.where(df == 'N')
-        col_index = col_index[0]
-        row_index = row_index[0]
-        next_col_index = col_index + 1
-        N_2=df.iloc[row_index, next_col_index]
-        row_index, col_index = np.where(df == 'E')
-        col_index = col_index[0]
-        row_index = row_index[0]
-        next_col_index = col_index + 1
-        E_2 = df.iloc[row_index, next_col_index]
+        N_2=df.iloc[1,1]
+        E_2 = df.iloc[2, 1]
+
         if index==1:
             distance=15
         else:
@@ -192,11 +163,12 @@ for index, sheet_name in enumerate(sheet_names):
             E_1=E_2
             N_1=N_2
             distance=distance+distance_
-        #print(distance)
+        print(distance)
 
 
  #------------------------------------------------------------------------------------------------------------------------------------
         # 鑽孔名稱 (hole_width/2*scale_factor))
+        print(f"工作表 {index}: {sheet_name}")
         text_value = f"{sheet_name}"  # 使用 f-string 來格式化文字
         word_height=2
         #text_width = len(text_value) * 2.5 * scale_factor_w 
@@ -231,11 +203,7 @@ for index, sheet_name in enumerate(sheet_names):
         p2 = APoint(scale_factor_w*distance + 5, Ground_EL)
  #------------------------------------------------------------------------------------------------------------------------------------       
         #地下水位
-        row_index, col_index = np.where(df == 'G.W.L.')
-        col_index = col_index[0]
-        row_index = row_index[0]
-        next_col_index = col_index + 1
-        GWL = df.iloc[row_index, next_col_index]
+        GWL = df.iloc[1, 5]
         GWL_point=APoint(distance*scale_factor_w-(6*scale_factor_w),GWL*scale_factor_h)
         #水位線
         GWL_point_end=APoint(distance*scale_factor_w-(8*scale_factor_w),GWL*scale_factor_h)
@@ -264,50 +232,75 @@ for index, sheet_name in enumerate(sheet_names):
         y1=Ground_EL
         depest=0
         num_element=0
+        
         for layer_index, row in df.iterrows():
-            Layer = row['Layer']
-            hatch_num=row['LOG']
-            depth=row['Depth']
-            spt_n = row['N']
+            Layer = df.iloc[:, 20]
+            Layer=Layer[5:]
+            Layer=Layer.dropna()
+            depth = df.iloc[:, 0]
+            depth=depth[5:]
 
-            
+            hatch_num=df.iloc[:, 21]
+            hatch_num=hatch_num[5:]
+            hatch_num=hatch_num.dropna()
+            hatch_num=hatch_num.tolist()
+            spt_n = df.iloc[:, 5]
+            spt_n=spt_n[5:]
+
             # Layer列數字迭代
             if layer_index != 0:
-                
-                if not pd.isna(Layer):
-                    y2=y1-Layer
+                # for index, sheet_name in enumerate(sheet_names):
+                print("hatch_num :",hatch_num)
+
+                for index,layer in enumerate(Layer):
+                    print("Depth :",layer)
+                    y2=y1-layer
                     p1=APoint(distance*scale_factor_w,y1*scale_factor_h)
                     p2=APoint((distance+hole_width)*scale_factor_w,y1*scale_factor_h)
                     p3=APoint(distance*scale_factor_w,y2*scale_factor_h)
                     p4=APoint((distance+hole_width)*scale_factor_w,y2*scale_factor_h)
                     y1=y2
-                
-                pnts=[p1.x,p1.y,
-                      p2.x,p2.y,
-                      p4.x,p4.y,
-                      p3.x,p3.y,
-                      p1.x,p1.y]
-                #---------------------------------------------------------------------------------------------------------------------
-                #填充線
-                if not pd.isna(hatch_num):
+                    
+                    pnts=[p1.x,p1.y,
+                        p2.x,p2.y,
+                        p4.x,p4.y,
+                        p3.x,p3.y,
+                        p1.x,p1.y]
+                    #---------------------------------------------------------------------------------------------------------------------
+                    #填充線
                     pnts = vtfloat(pnts)
                     sq = msp.AddLightWeightPolyline(pnts)
                     sq.Closed = True
                     # Convert depth to a numeric type
-                    depth = pd.to_numeric(depth, errors='coerce')
+                    #depth = pd.to_numeric(depth, errors='coerce')
                     outerLoop = []
                     outerLoop.append(sq)
                     outerLoop = vtobj(outerLoop)
+                    # hatch_num=hatch_num.tolist()
+                    
+                    print('i',layer)
                     # 将 hatch_num 转换为整数类型
-                    int_hatch_num = int(hatch_num)
-                    hatchobj = msp.AddHatch(1, int_hatch_num, True)
-                    hatchobj.PatternScale = 2*scale_factor_w  # 设置填充线比例为 2
+                    print('hatch_num',hatch_num[index])
+                    h=int(hatch_num[index])
+                    hatchobj = msp.AddHatch(1, h, True)
+                    hatchobj.PatternScale = 0.5*scale_factor_w  # 设置填充线比例为 2
                     hatchobj.AppendOuterLoop(outerLoop)
                     hatchobj.Evaluate()
-                    if int_hatch_num in [1, 2, 5,6,7,11,21]:
-                        rotation_angle_degrees = 45/180*3.1415926
-                        hatchobj.PatternAngle = rotation_angle_degrees
-                    example_list.append(hatch_num)
+                    example_list.append(h)
+                    
+                    # Check if depth is not NaN
+                    #分層深度
+                    #depth
+                    Layer_text = f"{layer:.1f}"
+                    insert_point=APoint((distance-0.5)*scale_factor_w, y2*scale_factor_h,y2*scale_factor_h)
+                    text = acad.AddText(Layer_text,insert_point, 0.5*scale_factor_w)
+                    text.Alignment=11  
+                    text.TextAlignmentPoint = insert_point
+                    nan_encountered = False
+
+
+
+
                 #---------------------------------------------------------------------------------------------------------------------
                 #深度迭代
                 if Ground_EL>ruler_top:
@@ -316,29 +309,17 @@ for index, sheet_name in enumerate(sheet_names):
                 if depest<ruler_bottom:
                     ruler_bottom=depest
 
-                # Check if depth is not NaN
-                #分層深度
-                #depth
-                if not pd.isna(Layer):
-                    Layer_text = f"{Layer:.1f}"
-                    insert_point=APoint((distance-0.5)*scale_factor_w, y2*scale_factor_h,y2*scale_factor_h)
-                    text = acad.AddText(Layer_text,insert_point, 0.5*scale_factor_w)
-                    text.Alignment=11  
-                    text.TextAlignmentPoint = insert_point
-                    nan_encountered = False
                 #spt
-                if not pd.isna(depth):
-                    if Ground_EL-depth<depest:
-                        depest=Ground_EL-depth
-                    if not pd.isna(spt_n):
-                        text_value=spt_n
-                        insert_point=APoint((distance+hole_width+0.5)*scale_factor_w, (Ground_EL-depth)*scale_factor_h,(Ground_EL-depth)*scale_factor_h)
-                        text = acad.AddText(text_value,insert_point, 0.5*scale_factor_w)
-                        text.Alignment=9
-                        text.TextAlignmentPoint = insert_point
-                else:
-                    nan_encountered = True
-                    break
+
+                if Ground_EL-depth<depest:
+                    depest=Ground_EL-depth
+                if not pd.isna(spt_n):
+                    text_value=spt_n
+                    insert_point=APoint((distance+hole_width+0.5)*scale_factor_w, (Ground_EL-depth)*scale_factor_h,(Ground_EL-depth)*scale_factor_h)
+                    text = acad.AddText(text_value,insert_point, 0.5*scale_factor_w)
+                    text.Alignment=9
+                    text.TextAlignmentPoint = insert_point
+
 
         acad.AddLine(APoint(distance*scale_factor_w,Ground_EL*scale_factor_h),APoint((distance+hole_width)*scale_factor_w,Ground_EL*scale_factor_h))
         acad.AddLine(APoint((distance+hole_width)*scale_factor_w,Ground_EL*scale_factor_h),APoint((distance+hole_width)*scale_factor_w,depest*scale_factor_h))
@@ -401,9 +382,6 @@ for i in example_list_int:
     hatchobj.PatternScale = 1 * scale_factor_w  # 設置填充線比例為 2
     hatchobj.AppendOuterLoop(outerLoop)
     hatchobj.Evaluate()
-    if int_hatch_num in [1, 2, 5,6,7,11,21]:
-                        rotation_angle_degrees = 45/180*3.1415926
-                        hatchobj.PatternAngle = rotation_angle_degrees
 
     # 更新Y坐標
     text_y -= 2 * scale_factor_h
