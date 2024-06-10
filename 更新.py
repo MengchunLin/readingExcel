@@ -309,13 +309,15 @@ for index, sheet_name in enumerate(sheet_names):
                 if depest<ruler_bottom:
                     ruler_bottom=depest
 
+                if Ground_EL-depth[index]<depest:
+                    depest=Ground_EL-depth
+
                 #spt
 
-                if Ground_EL-depth<depest:
-                    depest=Ground_EL-depth
-                if not pd.isna(spt_n):
-                    text_value=spt_n
-                    insert_point=APoint((distance+hole_width+0.5)*scale_factor_w, (Ground_EL-depth)*scale_factor_h,(Ground_EL-depth)*scale_factor_h)
+
+                if not pd.isna(spt_n[index]):
+                    text_value=spt_n[index]
+                    insert_point=APoint((distance+hole_width+0.5)*scale_factor_w, (Ground_EL-depth[index])*scale_factor_h,(Ground_EL-depth[index])*scale_factor_h)
                     text = acad.AddText(text_value,insert_point, 0.5*scale_factor_w)
                     text.Alignment=9
                     text.TextAlignmentPoint = insert_point
