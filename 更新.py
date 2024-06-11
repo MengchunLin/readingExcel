@@ -31,28 +31,53 @@ scale_factor_w=0
 
 #dictionary
 
-dictionary={'0':'回填土',
-            '1':'良好、不良級配卵礫'+'\n'+'石、砂礫石',
-            '2':'良好、不良級配卵石'+'\n'+'、砂礫石',
-            '3':'良好、不良級配卵礫'+'\n'+'石、砂礫石',
-            '4':'良好、不良級配砂土'+'\n'+'、礫砂土',
-            '5':'粉質砂土',
-            '6':'黏質砂土',
-            '7':'低至中等塑性無機黏'+'\n'+'土、低塑性粉質黏土',
-            '8':'黏質粉土、有機黏土',
-            '9':'高塑性無機黏土、中等至高塑性有機黏土',
-            '10':'無機質粉土',
-            '11':'砂質粉土',
-            '12':'安山岩',
-            '13':'卵礫石',
-            '14':'砂岩',
-            '15':'碎屑岩',
-            '16':'粉砂岩',
-            '17':'泥岩',
-            '18':'頁岩',
-            '19':'凝灰岩',
-            '20':'火山碎屑',
-            '21':'崩積層'
+dictionary={'001':'土壤',
+            '010':'岩盤',
+            '101':'巨礫',
+            '102':'粗礫',
+            '103':'礫石',
+            '104':'砂或礫石質砂(SW 或 SP)',
+            '105':'粉土(MH)',
+            '106':'高塑性無機性黏土，中至高塑性有機黏土(CH 或 OH)',
+            '107':'有機黏土',
+            '108':'有機粉土',
+            '109':'有機砂',
+            '110':'泥炭',
+            '111':'崩積物;岩屑堆積;碎屑',
+            '112':'填方',
+            '202':'紅土礫石',
+            '206':'黏土質礫石(GC)',
+            '207':'粉土質礫石(GM)',
+            '222':'礫質砂',
+            '223':'粗砂',
+            '224':'細砂',
+            '225':'凝灰岩',
+            '227':'粉土質砂(SM)',
+            '228':'黏土質砂(SC)',
+            '229':'鈣質砂',
+            '242':'砂質粉土(ML)',
+            '244':'低塑性黏土質粉土，低塑性有機粉'+'\n'+'土及粉土質黏土(ML 或 OL)',
+            '260':'礫質黏土',
+            '262':'砂質黏土',
+            '264':'低至中塑性無機性黏土，粉土質'+'\n'+'黏土及砂質黏土(CL 或 CL-ML)',
+            '266':'紅土',
+            '301':'礫岩',
+            '302':'角礫岩',
+            '303':'砂岩',
+            '307':'泥岩',
+            '308':'粉砂岩',
+            '309':'頁岩',
+            '412':'粉砂質砂岩',
+            '414':'泥質砂岩',
+            '420':'砂岩夾頁岩',
+            '424':'砂泥岩互層',
+            '426':'砂岩夾頁岩',
+            '428':'頁岩夾砂岩',
+            '432':'砂質粉砂岩',
+            '434':'泥質粉砂岩',
+            '442':'砂質泥岩',
+            '444':'粉砂質泥岩',
+            '446':'砂質頁岩'
             }
 
 # 使用 Tkinter 檔案對話框選擇檔案
@@ -138,196 +163,209 @@ y_end_point = APoint(0, y_end)
 
 
 
-for index, sheet_name in enumerate(sheet_names):
+for index, sheet_name in enumerate(sheet_names[1:], start=1):
     #skip the first sheet
     N_1=0
     N_2=0
     E_1=0
     E_2=0
-    num_lists+=1
-    if index != 0:
-        
+    num_lists+=1    
  #------------------------------------------------------------------------------------------------------------------------------------
-        #孔頂高
-        df = pd.read_excel(xl, sheet_name, header=None)
-        Ground_EL= df.iloc[0,5]
+    #孔頂高
+    df = pd.read_excel(xl, sheet_name, header=None)
+    Ground_EL= df.iloc[0,5]
 #------------------------------------------------------------------------------------------------------------------------------------
-        #位置distance
-        N_2=df.iloc[1,1]
-        E_2 = df.iloc[2, 1]
+    #位置distance
+    N_2=df.iloc[1,1]
+    E_2 = df.iloc[2, 1]
+    if pd.isna(N_2) or pd.isna(E_2):
+        distance=25
 
-        if index==1:
-            distance=15
-        else:
-            distance_=pow(pow(E_2-E_1,2)+pow(N_2-N_1,2),0.5)/1000000*scale_factor_w
-            E_1=E_2
-            N_1=N_2
-            distance=distance+distance_
-        print(distance)
+    if index==1:
+        distance=15
+    else:
+        distance_=pow(pow(E_2-E_1,2)+pow(N_2-N_1,2),0.5)/1000000*scale_factor_w
+        E_1=E_2
+        N_1=N_2
+        distance=distance+distance_
+    print('距離',distance)
+#------------------------------------------------------------------------------------------------------------------------------------
+    # 鑽孔名稱 (hole_width/2*scale_factor))
+    print(f"工作表 {index}: {sheet_name}")
+    text_value = f"{sheet_name}"  # 使用 f-string 來格式化文字
+    word_height=2
+    #text_width = len(text_value) * 2.5 * scale_factor_w 
+    insert_point=APoint((distance+hole_width/2)*scale_factor_w, (Ground_EL+5)*scale_factor_h,(Ground_EL+5)*scale_factor_h) 
+    text = acad.AddText(text_value,insert_point, 1*scale_factor_w)
+    text.Alignment=13
+    text.TextAlignmentPoint = insert_point
+    #EL
+    text_value='EL  '+str(Ground_EL)
+    insert_point=APoint((distance+hole_width/2)*scale_factor_w, (Ground_EL+3)*scale_factor_h,(Ground_EL+3)*scale_factor_h)
+    text = acad.AddText(text_value,insert_point, 0.8*scale_factor_w)
+    text.Alignment=13
+    text.TextAlignmentPoint = insert_point
+    #print(insert_point) 
 
+#------------------------------------------------------------------------------------------------------------------------------------
+    #土層深度
+    text_value='Depth(m)'
+    insert_point=APoint((distance)*scale_factor_w, Ground_EL*scale_factor_h,Ground_EL*scale_factor_h) 
+    text=acad.AddText(text_value,insert_point, 0.8*scale_factor_w)
+    text.Alignment=14
+    text.TextAlignmentPoint = insert_point
+#------------------------------------------------------------------------------------------------------------------------------------
+    #spt
+    text_value='SPT-N'
+    #text=acad.AddText(text_value,APoint(index * scale_factor_w*distance+5*scale_factor_w, 2.5*scale_factor_h),2*scale_factor_w)
+    insert_point=APoint((distance+hole_width)*scale_factor_w, Ground_EL*scale_factor_h,Ground_EL*scale_factor_h) 
+    text=acad.AddText(text_value,insert_point, 0.8*scale_factor_w)
+    text.Alignment=12
+    text.TextAlignmentPoint = insert_point
+    p1 = APoint(scale_factor_w*distance, Ground_EL)
+    p2 = APoint(scale_factor_w*distance + 5, Ground_EL)
+#------------------------------------------------------------------------------------------------------------------------------------       
+    #地下水位
+    GWL = df.iloc[1, 5]
+    GWL=Ground_EL-GWL
+    GWL_point=APoint(distance*scale_factor_w-(6*scale_factor_w),GWL*scale_factor_h)
+    #水位線
+    GWL_point_end=APoint(distance*scale_factor_w-(8*scale_factor_w),GWL*scale_factor_h)
+    acad.AddLine(GWL_point,GWL_point_end)
+    #裝飾線
+    acad.AddLine(APoint(distance*scale_factor_w-(6.5*scale_factor_w),GWL*scale_factor_h-0.2*scale_factor_h),
+                    APoint(distance*scale_factor_w-(7.5*scale_factor_w),GWL*scale_factor_h-0.2*scale_factor_h))
+    acad.AddLine(APoint(distance*scale_factor_w-(6.6*scale_factor_w),GWL*scale_factor_h-0.4*scale_factor_h),
+                    APoint(distance*scale_factor_w-(7.4*scale_factor_w),GWL*scale_factor_h-0.4*scale_factor_h))
+    #箭頭
+    arrow_start=APoint((GWL_point.x+GWL_point_end.x)/2,GWL*scale_factor_h)
+    acad.AddLine(arrow_start,APoint(arrow_start.x+(0.5*scale_factor_h/pow(3,0.5)),arrow_start.y+(0.5*scale_factor_h)))
+    acad.AddLine(arrow_start,APoint(arrow_start.x-(0.5*scale_factor_h/pow(3,0.5)),arrow_start.y+(0.5*scale_factor_h)))
+    acad.AddLine(APoint(arrow_start.x+(0.5*scale_factor_h/pow(3,0.5)),arrow_start.y+(0.5*scale_factor_h)),
+                    APoint(arrow_start.x-(0.5*scale_factor_h/pow(3,0.5)),arrow_start.y+(0.5*scale_factor_h)))
+    next_col_data_str = str(GWL)
+    text='G.W.L.'+'  '+next_col_data_str
+    insert_point=APoint((GWL_point.x+GWL_point_end.x)/2,arrow_start.y+(0.5*scale_factor_h))
+    text=acad.AddText(text,insert_point, 0.6*scale_factor_w)
+    text.Alignment=13
+    text.TextAlignmentPoint = insert_point
+#------------------------------------------------------------------------------------------------------------------------------------ 
+    #畫孔位
+    #讀取Layer列的數字
+    previous_layer = 0
+    y1=Ground_EL
+    depest=0
+    num_element=0
+    
+    Layer = df.iloc[:, 20]
+    Layer=Layer[5:]
+    Layer=Layer.dropna()
 
- #------------------------------------------------------------------------------------------------------------------------------------
-        # 鑽孔名稱 (hole_width/2*scale_factor))
-        print(f"工作表 {index}: {sheet_name}")
-        text_value = f"{sheet_name}"  # 使用 f-string 來格式化文字
-        word_height=2
-        #text_width = len(text_value) * 2.5 * scale_factor_w 
-        insert_point=APoint((distance+hole_width/2)*scale_factor_w, (Ground_EL+5)*scale_factor_h,(Ground_EL+5)*scale_factor_h) 
-        text = acad.AddText(text_value,insert_point, 1*scale_factor_w)
-        text.Alignment=13
-        text.TextAlignmentPoint = insert_point
-        #EL
-        text_value='EL  '+str(Ground_EL)
-        insert_point=APoint((distance+hole_width/2)*scale_factor_w, (Ground_EL+3)*scale_factor_h,(Ground_EL+3)*scale_factor_h)
-        text = acad.AddText(text_value,insert_point, 0.8*scale_factor_w)
-        text.Alignment=13
-        text.TextAlignmentPoint = insert_point
-        #print(insert_point) 
+    depth = df.iloc[:, 0]
+    depth=depth[5:]
+    depth=depth.dropna()
 
- #------------------------------------------------------------------------------------------------------------------------------------
-        #土層深度
-        text_value='Depth(m)'
-        insert_point=APoint((distance)*scale_factor_w, Ground_EL*scale_factor_h,Ground_EL*scale_factor_h) 
-        text=acad.AddText(text_value,insert_point, 0.8*scale_factor_w)
-        text.Alignment=14
-        text.TextAlignmentPoint = insert_point
- #------------------------------------------------------------------------------------------------------------------------------------
-        #spt
-        text_value='SPT-N'
-        #text=acad.AddText(text_value,APoint(index * scale_factor_w*distance+5*scale_factor_w, 2.5*scale_factor_h),2*scale_factor_w)
-        insert_point=APoint((distance+hole_width)*scale_factor_w, Ground_EL*scale_factor_h,Ground_EL*scale_factor_h) 
-        text=acad.AddText(text_value,insert_point, 0.8*scale_factor_w)
-        text.Alignment=12
-        text.TextAlignmentPoint = insert_point
-        p1 = APoint(scale_factor_w*distance, Ground_EL)
-        p2 = APoint(scale_factor_w*distance + 5, Ground_EL)
- #------------------------------------------------------------------------------------------------------------------------------------       
-        #地下水位
-        GWL = df.iloc[1, 5]
-        GWL_point=APoint(distance*scale_factor_w-(6*scale_factor_w),GWL*scale_factor_h)
-        #水位線
-        GWL_point_end=APoint(distance*scale_factor_w-(8*scale_factor_w),GWL*scale_factor_h)
-        acad.AddLine(GWL_point,GWL_point_end)
-        #裝飾線
-        acad.AddLine(APoint(distance*scale_factor_w-(6.5*scale_factor_w),GWL*scale_factor_h-0.2*scale_factor_h),
-                     APoint(distance*scale_factor_w-(7.5*scale_factor_w),GWL*scale_factor_h-0.2*scale_factor_h))
-        acad.AddLine(APoint(distance*scale_factor_w-(6.6*scale_factor_w),GWL*scale_factor_h-0.4*scale_factor_h),
-                     APoint(distance*scale_factor_w-(7.4*scale_factor_w),GWL*scale_factor_h-0.4*scale_factor_h))
-        #箭頭
-        arrow_start=APoint((GWL_point.x+GWL_point_end.x)/2,GWL*scale_factor_h)
-        acad.AddLine(arrow_start,APoint(arrow_start.x+(0.5*scale_factor_h/pow(3,0.5)),arrow_start.y+(0.5*scale_factor_h)))
-        acad.AddLine(arrow_start,APoint(arrow_start.x-(0.5*scale_factor_h/pow(3,0.5)),arrow_start.y+(0.5*scale_factor_h)))
-        acad.AddLine(APoint(arrow_start.x+(0.5*scale_factor_h/pow(3,0.5)),arrow_start.y+(0.5*scale_factor_h)),
-                     APoint(arrow_start.x-(0.5*scale_factor_h/pow(3,0.5)),arrow_start.y+(0.5*scale_factor_h)))
-        next_col_data_str = str(GWL)
-        text='G.W.L.'+'  '+next_col_data_str
-        insert_point=APoint((GWL_point.x+GWL_point_end.x)/2,arrow_start.y+(0.5*scale_factor_h))
-        text=acad.AddText(text,insert_point, 0.6*scale_factor_w)
-        text.Alignment=13
-        text.TextAlignmentPoint = insert_point
- #------------------------------------------------------------------------------------------------------------------------------------ 
-        #畫孔位
-        #讀取Layer列的數字
-        previous_layer = 0
-        y1=Ground_EL
-        depest=0
-        num_element=0
+    hatch_num=df.iloc[:, 21]
+    hatch_num=hatch_num[5:]
+    hatch_num=hatch_num.dropna()
+    hatch_num=hatch_num.tolist()
+
+    spt_n = df.iloc[:, 5]
+    spt_n=spt_n[5:]
+
+    # Layer列數字迭代
+    t=0
+    # for index, sheet_name in enumerate(sheet_names):
+    for layer ,spt ,depth in zip(Layer,spt_n,depth):
         
-        for layer_index, row in df.iterrows():
-            Layer = df.iloc[:, 20]
-            Layer=Layer[5:]
-            Layer=Layer.dropna()
-            depth = df.iloc[:, 0]
-            depth=depth[5:]
+        times=len(Layer)
+        print("Depth :",layer)
+        y2=Ground_EL-layer
+        p1=APoint(distance*scale_factor_w,y1*scale_factor_h)
+        p2=APoint((distance+hole_width)*scale_factor_w,y1*scale_factor_h)
+        p3=APoint(distance*scale_factor_w,y2*scale_factor_h)
+        p4=APoint((distance+hole_width)*scale_factor_w,y2*scale_factor_h)
+        y1=y2
 
-            hatch_num=df.iloc[:, 21]
-            hatch_num=hatch_num[5:]
-            hatch_num=hatch_num.dropna()
-            hatch_num=hatch_num.tolist()
-            spt_n = df.iloc[:, 5]
-            spt_n=spt_n[5:]
+        
+        pnts=[p1.x,p1.y,
+            p2.x,p2.y,
+            p4.x,p4.y,
+            p3.x,p3.y,
+            p1.x,p1.y]
+        #---------------------------------------------------------------------------------------------------------------------
+        #填充線
+        pnts = vtfloat(pnts)
+        sq = msp.AddLightWeightPolyline(pnts)
+        sq.Closed = True
+        # Convert depth to a numeric type
+        #depth = pd.to_numeric(depth, errors='coerce')
+        outerLoop = []
+        outerLoop.append(sq)
+        outerLoop = vtobj(outerLoop)
+        # hatch_num=hatch_num.tolist()
+        
+        # print('i',layer)
+        # 将 hatch_num 转换为整数类型
+        
+        h=int(hatch_num[t])
+        hatchobj = msp.AddHatch(1, h, True)
+        hatchobj.PatternScale = 0.5*scale_factor_w  # 设置填充线比例为 2
+        hatchobj.AppendOuterLoop(outerLoop)
+        hatchobj.Evaluate()
+        example_list.append(h)
+        
+        # Check if depth is not NaN
+        #分層深度
+        #depth
+        Layer_text = f"{layer:.1f}"
+        insert_point=APoint((distance-0.5)*scale_factor_w, y2*scale_factor_h,y2*scale_factor_h)
+        text = acad.AddText(Layer_text,insert_point, 0.5*scale_factor_w)
+        text.Alignment=11  
+        text.TextAlignmentPoint = insert_point
+        nan_encountered = False
 
-            # Layer列數字迭代
-            if layer_index != 0:
-                # for index, sheet_name in enumerate(sheet_names):
-                print("hatch_num :",hatch_num)
+        t+=1
+        if t==times:
+            break
+        #---------------------------------------------------------------------------------------------------------------------
+        #深度迭代
+        if Ground_EL>ruler_top:
+            ruler_top=Ground_EL
 
-                for index,layer in enumerate(Layer):
-                    print("Depth :",layer)
-                    y2=y1-layer
-                    p1=APoint(distance*scale_factor_w,y1*scale_factor_h)
-                    p2=APoint((distance+hole_width)*scale_factor_w,y1*scale_factor_h)
-                    p3=APoint(distance*scale_factor_w,y2*scale_factor_h)
-                    p4=APoint((distance+hole_width)*scale_factor_w,y2*scale_factor_h)
-                    y1=y2
-                    
-                    pnts=[p1.x,p1.y,
-                        p2.x,p2.y,
-                        p4.x,p4.y,
-                        p3.x,p3.y,
-                        p1.x,p1.y]
-                    #---------------------------------------------------------------------------------------------------------------------
-                    #填充線
-                    pnts = vtfloat(pnts)
-                    sq = msp.AddLightWeightPolyline(pnts)
-                    sq.Closed = True
-                    # Convert depth to a numeric type
-                    #depth = pd.to_numeric(depth, errors='coerce')
-                    outerLoop = []
-                    outerLoop.append(sq)
-                    outerLoop = vtobj(outerLoop)
-                    # hatch_num=hatch_num.tolist()
-                    
-                    print('i',layer)
-                    # 将 hatch_num 转换为整数类型
-                    print('hatch_num',hatch_num[index])
-                    h=int(hatch_num[index])
-                    hatchobj = msp.AddHatch(1, h, True)
-                    hatchobj.PatternScale = 0.5*scale_factor_w  # 设置填充线比例为 2
-                    hatchobj.AppendOuterLoop(outerLoop)
-                    hatchobj.Evaluate()
-                    example_list.append(h)
-                    
-                    # Check if depth is not NaN
-                    #分層深度
-                    #depth
-                    Layer_text = f"{layer:.1f}"
-                    insert_point=APoint((distance-0.5)*scale_factor_w, y2*scale_factor_h,y2*scale_factor_h)
-                    text = acad.AddText(Layer_text,insert_point, 0.5*scale_factor_w)
-                    text.Alignment=11  
-                    text.TextAlignmentPoint = insert_point
-                    nan_encountered = False
+        if depest<ruler_bottom:
+            ruler_bottom=depest
 
+        if Ground_EL-layer<depest:
+            depest=Ground_EL-depth
 
-
-
-                #---------------------------------------------------------------------------------------------------------------------
-                #深度迭代
-                if Ground_EL>ruler_top:
-                    ruler_top=Ground_EL
-
-                if depest<ruler_bottom:
-                    ruler_bottom=depest
-
-                if Ground_EL-depth[index]<depest:
-                    depest=Ground_EL-depth
-
-                #spt
+        #spt
+        if not pd.isna(spt):
+            text_value=spt
+            insert_point=APoint((distance+hole_width+0.5)*scale_factor_w, (Ground_EL-depth)*scale_factor_h,(Ground_EL-depth)*scale_factor_h)
+            text = acad.AddText(text_value,insert_point, 0.5*scale_factor_w)
+            text.Alignment=9
+            text.TextAlignmentPoint = insert_point
 
 
-                if not pd.isna(spt_n[index]):
-                    text_value=spt_n[index]
-                    insert_point=APoint((distance+hole_width+0.5)*scale_factor_w, (Ground_EL-depth[index])*scale_factor_h,(Ground_EL-depth[index])*scale_factor_h)
-                    text = acad.AddText(text_value,insert_point, 0.5*scale_factor_w)
-                    text.Alignment=9
-                    text.TextAlignmentPoint = insert_point
-
-
-        acad.AddLine(APoint(distance*scale_factor_w,Ground_EL*scale_factor_h),APoint((distance+hole_width)*scale_factor_w,Ground_EL*scale_factor_h))
-        acad.AddLine(APoint((distance+hole_width)*scale_factor_w,Ground_EL*scale_factor_h),APoint((distance+hole_width)*scale_factor_w,depest*scale_factor_h))
-        acad.AddLine(APoint((distance+hole_width)*scale_factor_w,depest*scale_factor_h),APoint(distance*scale_factor_w,depest*scale_factor_h))
-        acad.AddLine(APoint(distance*scale_factor_w,depest*scale_factor_h),APoint(distance*scale_factor_w,Ground_EL*scale_factor_h))
+    pnts_outer=[distance*scale_factor_w,Ground_EL*scale_factor_h,
+                (distance+hole_width)*scale_factor_w,Ground_EL*scale_factor_h,
+                (distance+hole_width)*scale_factor_w,(Ground_EL-layer)*scale_factor_h,
+                distance*scale_factor_w,(Ground_EL-layer)*scale_factor_h,
+                distance*scale_factor_w,Ground_EL*scale_factor_h
+    ]
+    pnts_outer = vtfloat(pnts_outer)
+    sq = msp.AddLightWeightPolyline(pnts_outer)
+    sq.Closed = True
+    outerLoop = []
+    outerLoop.append(sq)
+    outerLoop = vtobj(outerLoop)
+    # acad.AddLine(APoint(distance*scale_factor_w,Ground_EL*scale_factor_h),APoint((distance+hole_width)*scale_factor_w,Ground_EL*scale_factor_h))
+    # acad.AddLine(APoint((distance+hole_width)*scale_factor_w,Ground_EL*scale_factor_h),APoint((distance+hole_width)*scale_factor_w,depest*scale_factor_h))
+    # acad.AddLine(APoint((distance+hole_width)*scale_factor_w,depest*scale_factor_h),APoint(distance*scale_factor_w,depest*scale_factor_h))
+    # acad.AddLine(APoint(distance*scale_factor_w,depest*scale_factor_h),APoint(distance*scale_factor_w,Ground_EL*scale_factor_h))
 example_list=list(set(example_list))
+
 for i in example_list:
     example_list_int.append(int(i))
 print(example_list_int)
