@@ -21,6 +21,7 @@ lists = []
 pre_num=0
 example_list=[]
 example_list_int=[]
+all_lists = []
 #ruler
 ruler_top=0
 ruler_bottom=0
@@ -351,6 +352,13 @@ for index, sheet_name in enumerate(sheet_names[1:], start=1):
         text.TextAlignmentPoint = insert_point
         nan_encountered = False
 
+        new_list = []  # 在每次迴圈開始時創建一個新列表
+        y2=round(y1,2)
+        for i in hatch_num:
+            new_list.append([i,y2])  # 將每個 LOG 添加到新列表中
+        all_lists.append(new_list)  # 將新列表添加到 all_lists 中
+
+
         t+=1
         if t==times:
             break
@@ -451,24 +459,25 @@ for i in example_list_int:
         box_y -= 2 * scale_factor_h
 
 #土層紀錄------------------------------------------------------------------------------------------------------------------------------------------------------
-all_lists = []  # 創建一個空列表來存儲所有創建的列表
-for index, sheet_name in enumerate(sheet_names):
-    if index != 0:
-        new_list = []  # 在每次迴圈開始時創建一個新列表
-        for layer_index, row in df.iterrows():
-            df = pd.read_excel(xl, sheet_name)
-            LOG = df.iloc[5,21]
-            if layer_index != 0:
-                if not pd.isna(LOG):
-                    new_list.append(LOG)  # 將每個 LOG 添加到新列表中
-        all_lists.append(new_list)  # 將新列表添加到 all_lists 中
-print(new_list)
+# all_lists = []  # 創建一個空列表來存儲所有創建的列表
+# for index, sheet_name in enumerate(sheet_names):
+#     if index != 0:
+#         df = pd.read_excel(xl, sheet_name)
+#         new_list = []  # 在每次迴圈開始時創建一個新列表
+#         for layer_index, row in df.iterrows():
+#             if layer_index>=5:
+#                 LOG = row.iloc[21]
+#                 if layer_index != 0:
+#                     if not pd.isna(LOG):
+#                         new_list.append(LOG)  # 將每個 LOG 添加到新列表中
+#         all_lists.append(new_list)  # 將新列表添加到 all_lists 中
 
-# 在迴圈外部檢視結果
-for i, sheet_name in enumerate(sheet_names):
-    if i != 0:
-        print(sheet_name + ": " + str(all_lists[i-1]))  # 輸出 sheet_name 和相應的列表
-        continue
+
+# # 在迴圈外部檢視結果
+# for i, sheet_name in enumerate(sheet_names):
+#     if i != 0:
+#         print(sheet_name + ": " + str(all_lists[i-1]))  # 輸出 sheet_name 和相應的列表
+#         continue
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ruler_bottom=round(depest-1)
@@ -503,3 +512,4 @@ for i in range(ruler_top, ruler_bottom,-1):
         line=acad.AddLine(APoint(0, i * scale_factor_h), APoint(0.5 * scale_factor_w, i * scale_factor_h))
         line.LineWeight=5
 acad.AddLine(y_start_point,y_end_point)
+print(all_lists)
