@@ -3,21 +3,27 @@ from openpyxl import Workbook
 from openpyxl.drawing.image import Image
 from openpyxl.styles import Alignment, Font, Border, Side
 from openpyxl.utils import get_column_letter
+import pandas as pd
+
+# 加载现有的 Excel 文件
+xl = pd.ExcelFile('七孔測試.xlsx')
+sheet_names = xl.sheet_names
+sheet_names.remove('工作表1')
 
 # 创建一个新的工作簿
-wb = Workbook()
+new_wb = openpyxl.Workbook()
+new_wb.remove(new_wb.active)  # 删除默认创建的第一张工作表
 
-# 获取当前活动的工作表
-ws = wb.active
+# 根据现有工作簿的工作表名称在新工作簿中创建相应数量的工作表
+for sheet_name in sheet_names:
+    new_wb.create_sheet(title=sheet_name)
 
-# 设置工作表名称
-ws.title = "工作表1"
 
 def adjust_column_width(ws):
     ws.column_dimensions['A'].width = 6.11
-    ws.column_dimensions['B'].width = 0.5
+    ws.column_dimensions['B'].width = 1
 
-def setup_worksheet(start_row):
+def setup_worksheet(ws, start_row):
     # 合并单元格
     ws.merge_cells(start_row=start_row, start_column=1, end_row=start_row+2, end_column=24)
     ws.merge_cells(start_row=start_row+3, start_column=1, end_row=start_row+3, end_column=24)
@@ -36,12 +42,17 @@ def setup_worksheet(start_row):
     ws.merge_cells(start_row=start_row+9, start_column=22, end_row=start_row+9, end_column=23)
     ws.merge_cells(start_row=start_row+11, start_column=22, end_row=start_row+11, end_column=23)
     ws.merge_cells(start_row=start_row+12, start_column=22, end_row=start_row+12, end_column=23)
+    ws.merge_cells(start_row=start_row+10, start_column=22, end_row=start_row+10, end_column=23)
+    ws.merge_cells(start_row=start_row+13, start_column=22, end_row=start_row+13, end_column=23)
 
     # 插入图片
     img = Image('萬頂圖樣.png')
     target_cell = f'G{start_row}'
     ws.add_image(img, target_cell)
     img.width, img.height = 550, 60
+    img1=Image('112.wmf')
+    ws.add_image(img1, 'A1')
+    
 
     # 添加文本并设置加粗和对齐方式
     cells_to_update = [
@@ -151,38 +162,53 @@ def setup_worksheet(start_row):
         cell.font = Font(name='Times New Roman', size=12, bold=True)
         cell.alignment = Alignment(horizontal=align, vertical='center')
 
-    # 在 cells_to_update 循環中使用：
+    # 在 cells_to_update 循环中使用：
     for cell, value in cells_to_update:
         actual_cell = ws[cell[0] + str(int(cell[1:]) + start_row - 1)]
         actual_cell.value = value
         set_cell_style(actual_cell)
-        border = Border(bottom=Side(style='medium'))
 
-
-    # 设置底部边框
+    # 设置边框
     for col in range(1, 25):
         cell = ws.cell(row=start_row + 8, column=col)
         cell.border = Border(bottom=Side(border_style='medium'))
         cell = ws.cell(row=start_row + 15, column=col)
         cell.border = Border(bottom=Side(border_style='thin'))
-        cell = ws.cell(row=start_row + 45, column=col)
-        cell.border = Border(bottom=Side(border_style='medium'))
+        cell = ws.cell(row=start_row + 46, column=col)
+        cell.border = Border(top=Side(border_style='medium'))
+        for i in range(9, 46):
+            cell = ws.cell(row=start_row + i, column=col)
+            cell.border = Border(right=Side(border_style='thin'))
 
-    # 设置右侧边框
+    # 设置左右边框
     for row in range(start_row+9, start_row + 46):
         cell = ws.cell(row=row, column=1)
         cell.border = Border(left=Side(border_style='medium'))
         cell = ws.cell(row=row, column=24)
         cell.border = Border(right=Side(border_style='medium'))
 
-    #調整欄寬
+    # 調整欄寬
     adjust_column_width(ws)
+#----------------------------------------------前置作業完成----------------------------------------------
 
-# 每46行执行一次
-for i in range(0, 5):  # 可以调整范围以覆盖你需要的行数
-    setup_worksheet(i * 46 + 1)
+# 为每个工作表执行 setup_worksheet
+for sheet_name in sheet_names:
+    df=pd.read_excel('七孔測試.xlsx',sheet_name=sheet_name)
+    Layer = df.iloc[:, 20]
+    Layer=Layer[5:]
+    Layer=Layer.dropna()
+    Layer=Layer.tolist()
+
+    hatch_num=df.iloc[:, 21]
+    hatch_num=hatch_num[5:]
+    hatch_num=hatch_num.dropna()
+    hatch_num=hatch_num.tolist()
+
+    ws = new_wb[sheet_name]
+    for i in range(0, len(sheet_names)):  # 可以调整范围以覆盖你需要的行数
+        setup_worksheet(ws, i * 46 + 1)
 
 # 保存文件
 fn = 'new_singol_hole_output.xlsx'
-wb.save(fn)
+new_wb.save(fn)
 print('done')
