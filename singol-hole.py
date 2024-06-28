@@ -1,36 +1,65 @@
+import os
+import logging
+from typing import List, Tuple
 import openpyxl
 from openpyxl import Workbook
 from openpyxl.drawing.image import Image
 from openpyxl.styles import Alignment, Font, Border, Side
 import pandas as pd
+import math
+import argparse
 
-# Load the existing Excel file
-xl = pd.ExcelFile('七孔測試.xlsx')
-sheet_names = xl.sheet_names
-sheet_names.remove('工作表1')
+# Configuration
+INPUT_FILE = '七孔測試.xlsx'
+OUTPUT_FILE = 'new_single_hole_output.xlsx'
+LOGO_FILE = '萬頂圖樣.png'
+MAIN_SHEET = '工作表1'
+PROJECT_NAME_CELL = (0,1)
 
-# Create a new workbook and remove the default sheet
-new_wb = Workbook()
-new_wb.remove(new_wb.active)
+# Constants
+THIN_BORDER = Side(border_style='thin')
+MEDIUM_BORDER = Side(border_style='medium')
 
-# Define border style
-border_style = Border(
-    right=Side(border_style='thin'),
-    bottom=Side(border_style='thin'),
-    top=Side(border_style='medium'),
-    left=Side(border_style='thin')
-)
+# Setup logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Create corresponding sheets in the new workbook
-for sheet_name in sheet_names:
-    new_wb.create_sheet(title=sheet_name)
+def parse_arguments():
+    parser = argparse.ArgumentParser(description='Process Excel file for geological data.')
+    parser.add_argument('--input', default=INPUT_FILE, help='Input Excel file name')
+    parser.add_argument('--output', default=OUTPUT_FILE, help='Output Excel file name')
+    return parser.parse_args()
+
+def load_excel_file(filename: str) -> Tuple[pd.ExcelFile, List[str], str]:
+    try:
+        xl = pd.ExcelFile(filename)
+        ws = pd.read_excel(xl, MAIN_SHEET, header=None)
+        project_name = ws.iloc[PROJECT_NAME_CELL[0], PROJECT_NAME_CELL[1]]  # Access the cell for project name
+        print(project_name)
+        sheet_names = xl.sheet_names
+        sheet_names.remove(MAIN_SHEET)
+        return xl, sheet_names, project_name
+    except Exception as e:
+        logging.error(f"Error loading Excel file: {e}")
+        raise
+
+
+def create_new_workbook(sheet_names: List[str]) -> Workbook:
+    new_wb = Workbook()
+    new_wb.remove(new_wb.active)
+    for sheet_name in sheet_names:
+        new_wb.create_sheet(title=sheet_name)
+    return new_wb
 
 def adjust_column_width(ws):
-    ws.column_dimensions['A'].width = 6.11
-    ws.column_dimensions['B'].width = 1
+    column_widths = {
+        'A': 6.11, 'B': 1, 'C': 6, 'D': 8, 'E': 6, 'F': 6, 'G': 6, 'H': 6, 'I': 35,
+        'J': 12, 'K': 8, 'L': 8, 'M': 8, 'N': 8, 'O': 9, 'P': 9, 'Q': 9, 'R': 9,
+        'S': 9, 'T': 9, 'U': 10, 'V': 9, 'W': 9, 'X': 12
+    }
+    for col, width in column_widths.items():
+        ws.column_dimensions[col].width = width
 
-def setup_worksheet(ws, start_row):
-    # Merge cells
+def merge_cells(ws, start_row: int):
     merge_cells_instructions = [
         (start_row, 1, start_row+2, 24),
         (start_row+3, 1, start_row+3, 24),
@@ -50,18 +79,40 @@ def setup_worksheet(ws, start_row):
         (start_row+11, 22, start_row+11, 23),
         (start_row+12, 22, start_row+12, 23),
         (start_row+10, 22, start_row+10, 23),
-        (start_row+13, 22, start_row+13, 23)
+        (start_row+13, 22, start_row+13, 23),
+        (start_row+5,1,start_row+5,3),
+        (start_row+5, 4, start_row+5, 11),
+        (start_row+5,12,start_row+5,13),
+        (start_row+5,14,start_row+5,16),
+        (start_row+5,21,start_row+5,24),
+        (start_row+6,1,start_row+6,3),
+        (start_row+6, 4, start_row+6, 11),
+        (start_row+6,12,start_row+6,13),
+        (start_row+6,14,start_row+6,16),
+        (start_row+6,21,start_row+6,24),
+        (start_row+7,1,start_row+7,3),
+        (start_row+7, 4, start_row+7, 11),
+        (start_row+7,12,start_row+7,13),
+        (start_row+7,14,start_row+7,16),
+        (start_row+7,17,start_row+7,18),
+        (start_row+7,21,start_row+7,24),
+        (start_row+8,1,start_row+8,3),
+        (start_row+8, 4, start_row+8, 11),
+        (start_row+8,12,start_row+8,13),
+        (start_row+8,14,start_row+8,16),
+        (start_row+8,17,start_row+8,18),
+        (start_row+8,21,start_row+8,24),
     ]
     for merge in merge_cells_instructions:
         ws.merge_cells(start_row=merge[0], start_column=merge[1], end_row=merge[2], end_column=merge[3])
-    
-    # Insert image
-    img = Image('萬頂圖樣.png')
+
+def insert_image(ws, start_row: int):
+    img = Image(LOGO_FILE)
     img.width, img.height = 550, 60
     target_cell = f'G{start_row}'
     ws.add_image(img, target_cell)
 
-    # Add text and set styles
+def add_text_and_styles(ws, start_row: int, project_name: str):
     cells_to_update = [
         ('A4', '地  質  鑽  探  及  土  壤  試  驗  一   覽  表'),
         ('A5', 'SOIL EXPLORATION AND TESTING REPORT'),
@@ -162,6 +213,8 @@ def setup_worksheet(ws, start_row):
         ('X14', 'Design-'),
         ('X15', 'ation'),
         ('X16', 'R.Q.D.(%)'),
+        # Informatiom of input file-----------------------------------
+        ('D6', project_name),
     ]
 
     def set_cell_style(cell, align='center'):
@@ -173,42 +226,99 @@ def setup_worksheet(ws, start_row):
         actual_cell.value = value
         set_cell_style(actual_cell)
 
-    # Set borders
-    for col in range(1, 25):
-        ws.cell(row=start_row + 8, column=col).border = Border(bottom=Side(border_style='medium'))
-        ws.cell(row=start_row + 46, column=col).border = Border(top=Side(border_style='medium'))
+def set_borders(ws, start_row: int):
+    for i in range(start_row, start_row + 46, 46):
+        # Set top and bottom borders
+        for col in range(1, 25):
+            ws.cell(row=i + 8, column=col).border = Border(bottom=MEDIUM_BORDER)
+            ws.cell(row=i + 46, column=col).border = Border(top=MEDIUM_BORDER)
 
-    for col in range(1, 24):
-        for i in range(17, 47):
-         ws.cell(row=i, column=col).border = Border(right=Side(border_style='thin'))
+        # Set right borders
+        for col in range(2, 24):
+            for row in range(i + 17, i + 47):
+                ws.cell(row=row, column=col).border = Border(right=THIN_BORDER)
 
-    # Set left and right borders
-    for row in range(start_row + 16, start_row + 46):
-        ws.cell(row=row, column=1).border = Border(left=Side(border_style='medium'))
-        ws.cell(row=row, column=24).border = Border(right=Side(border_style='medium'))
+        # Set left and right borders for the whole block
+        for row in range(i + 9, i + 46):
+            ws.cell(row=row, column=1).border = Border(left=MEDIUM_BORDER)
+            ws.cell(row=row, column=24).border = Border(right=MEDIUM_BORDER)
 
-    for row in ws['A10:A16']:
-        for cell in row:
-            cell.border = Border(left=Side(border_style='medium'),
-                                 right=Side(border_style='thin'),
-                                 top=Side(border_style='medium'),
-                                 bottom=Side(border_style='thin'))
+        # Set bottom borders for specific rows
+        for row in ws.iter_rows(i + 16, i + 16, 3, 23):
+            for cell in row:
+                cell.border = Border(top=THIN_BORDER,
+                                     left=THIN_BORDER)
 
+        #ruler
+        for row in ws.iter_rows(i + 15, i + 47, 2, 2):
+            for cell in row:
+                cell.border = Border(bottom=THIN_BORDER, top=THIN_BORDER, right=THIN_BORDER, left=THIN_BORDER)
 
-    # Adjust column widths
+        # Specific border
+        ws[f'A{i + 15}'].border = Border(bottom=THIN_BORDER, left=MEDIUM_BORDER)
+        ws[f'X{i + 15}'].border = Border(bottom=THIN_BORDER, right=MEDIUM_BORDER)
+        ws[f'X{i + 16}'].border = Border(right=MEDIUM_BORDER,left=THIN_BORDER)
+
+        for row in ws.iter_rows(i + 9, i + 15, 2, 23):
+            for cell in row:
+                cell.border = Border(right=THIN_BORDER)
+
+        # Adjust columns and rows
+        for row in ws.iter_rows(i + 15, i + 15, 3, 23):
+            for cell in row:
+                cell.border = Border(left=THIN_BORDER, right=THIN_BORDER, bottom=THIN_BORDER)
+
+        for row in ws.iter_rows(i + 10, i + 15, 2, 23):
+            for cell in row:
+                cell.border = Border(right=THIN_BORDER)
+                
+        # Single area border
+        for row in ws.iter_rows(i + 13, i + 13, 5, 8):
+            for cell in row:
+                cell.border = Border(bottom=THIN_BORDER, right=THIN_BORDER, left=THIN_BORDER)
+
+        for row in ws.iter_rows(i + 12, i + 12, 11, 14):
+            for cell in row:
+                cell.border = Border(top=THIN_BORDER, right=THIN_BORDER, left=THIN_BORDER)
+
+        for row in ws.iter_rows(i + 14, i + 14, 22, 23):
+            for cell in row:
+                cell.border = Border(top=THIN_BORDER, right=THIN_BORDER, left=THIN_BORDER)
+
+def setup_worksheet(ws, start_row: int, project_name: str):
+    merge_cells(ws, start_row)
+    insert_image(ws, start_row)
+    add_text_and_styles(ws, start_row, project_name)
+    set_borders(ws, start_row)
     adjust_column_width(ws)
 
-# Process each worksheet
-for sheet_name in sheet_names:
-    df = pd.read_excel('七孔測試.xlsx', sheet_name=sheet_name)
+def process_worksheet(sheet_name: str, xl: pd.ExcelFile, new_wb: Workbook, project_name: str):
+    df = xl.parse(sheet_name)
     Layer = df.iloc[:, 20][5:].dropna().tolist()
     hatch_num = df.iloc[:, 21][5:].dropna().tolist()
 
     ws = new_wb[sheet_name]
-    for i in range(len(sheet_names)):  # Adjust the range as needed
-        setup_worksheet(ws, i * 46 + 1)
+    page = math.ceil(max(Layer) / 14.5)
+    for i in range(page):
+        setup_worksheet(ws, i * 46 + 1, project_name)
 
-# Save the new workbook
-fn = 'new_singol_hole_output.xlsx'
-new_wb.save(fn)
-print('done')
+def main():
+    args = parse_arguments()
+    
+    try:
+        xl, sheet_names, project_name = load_excel_file(args.input)
+        new_wb = create_new_workbook(sheet_names)
+
+        for sheet_name in sheet_names:
+            process_worksheet(sheet_name, xl, new_wb, project_name)
+
+        if os.path.exists(args.output):
+            os.remove(args.output)
+        
+        new_wb.save(args.output)
+        logging.info(f"Successfully created {args.output}")
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")
+
+if __name__ == "__main__":
+    main()
