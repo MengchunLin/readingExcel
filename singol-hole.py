@@ -91,9 +91,11 @@ def merge_cells(ws, start_row: int):
         (start_row+6,14,start_row+6,16),
         (start_row+6,21,start_row+6,24),
         (start_row+7,1,start_row+7,3),
-        (start_row+7, 4, start_row+7, 11),
+        (start_row+7, 4, start_row+7, 6),
+        (start_row+7, 7, start_row+7, 8),
+        (start_row+7, 9, start_row+7, 11),
         (start_row+7,12,start_row+7,13),
-        (start_row+7,14,start_row+7,16),
+        
         (start_row+7,17,start_row+7,18),
         (start_row+7,21,start_row+7,24),
         (start_row+8,1,start_row+8,3),
@@ -112,7 +114,7 @@ def insert_image(ws, start_row: int):
     target_cell = f'G{start_row}'
     ws.add_image(img, target_cell)
 
-def add_text_and_styles(ws, start_row: int, project_name: str):
+def add_text_and_styles(ws, start_row: int):
     cells_to_update = [
         ('A4', '地  質  鑽  探  及  土  壤  試  驗  一   覽  表'),
         ('A5', 'SOIL EXPLORATION AND TESTING REPORT'),
@@ -145,6 +147,7 @@ def add_text_and_styles(ws, start_row: int, project_name: str):
         ('E13', 'Blows'),
         ('E14', 'Per ft.'),
         ('E15', '15cm'),
+        ('G8','施工日期：'),
         ('F15', '15cm'),
         ('G15', '15cm'),
         ('H15', 'N值'),
@@ -164,6 +167,7 @@ def add_text_and_styles(ws, start_row: int, project_name: str):
         ('M16', 'Silt'),
         ('N13', '粘土'),
         ('N16', 'Clay'),
+        ('O8','M'),
         ('O10', '自然'),
         ('O11', '含水量'),
         ('O13', 'Water'),
@@ -214,7 +218,6 @@ def add_text_and_styles(ws, start_row: int, project_name: str):
         ('X15', 'ation'),
         ('X16', 'R.Q.D.(%)'),
         # Informatiom of input file-----------------------------------
-        ('D6', project_name),
     ]
 
     def set_cell_style(cell, align='center'):
@@ -228,33 +231,27 @@ def add_text_and_styles(ws, start_row: int, project_name: str):
 
 def set_borders(ws, start_row: int):
     for i in range(start_row, start_row + 46, 46):
-        # Set top and bottom borders
+    # 設置邊框邏輯
         for col in range(1, 25):
             ws.cell(row=i + 8, column=col).border = Border(bottom=MEDIUM_BORDER)
             ws.cell(row=i + 46, column=col).border = Border(top=MEDIUM_BORDER)
 
-        # Set right borders
         for col in range(2, 24):
             for row in range(i + 17, i + 47):
                 ws.cell(row=row, column=col).border = Border(right=THIN_BORDER)
 
-        # Set left and right borders for the whole block
         for row in range(i + 9, i + 46):
             ws.cell(row=row, column=1).border = Border(left=MEDIUM_BORDER)
             ws.cell(row=row, column=24).border = Border(right=MEDIUM_BORDER)
 
-        # Set bottom borders for specific rows
         for row in ws.iter_rows(i + 16, i + 16, 3, 23):
             for cell in row:
-                cell.border = Border(top=THIN_BORDER,
-                                     left=THIN_BORDER)
+                cell.border = Border(top=THIN_BORDER, left=THIN_BORDER)
 
-        #ruler
         for row in ws.iter_rows(i + 15, i + 47, 2, 2):
             for cell in row:
                 cell.border = Border(bottom=THIN_BORDER, top=THIN_BORDER, right=THIN_BORDER, left=THIN_BORDER)
 
-        # Specific border
         ws[f'A{i + 15}'].border = Border(bottom=THIN_BORDER, left=MEDIUM_BORDER)
         ws[f'X{i + 15}'].border = Border(bottom=THIN_BORDER, right=MEDIUM_BORDER)
         ws[f'X{i + 16}'].border = Border(right=MEDIUM_BORDER,left=THIN_BORDER)
@@ -263,7 +260,6 @@ def set_borders(ws, start_row: int):
             for cell in row:
                 cell.border = Border(right=THIN_BORDER)
 
-        # Adjust columns and rows
         for row in ws.iter_rows(i + 15, i + 15, 3, 23):
             for cell in row:
                 cell.border = Border(left=THIN_BORDER, right=THIN_BORDER, bottom=THIN_BORDER)
@@ -271,8 +267,7 @@ def set_borders(ws, start_row: int):
         for row in ws.iter_rows(i + 10, i + 15, 2, 23):
             for cell in row:
                 cell.border = Border(right=THIN_BORDER)
-                
-        # Single area border
+
         for row in ws.iter_rows(i + 13, i + 13, 5, 8):
             for cell in row:
                 cell.border = Border(bottom=THIN_BORDER, right=THIN_BORDER, left=THIN_BORDER)
@@ -288,19 +283,118 @@ def set_borders(ws, start_row: int):
 def setup_worksheet(ws, start_row: int, project_name: str):
     merge_cells(ws, start_row)
     insert_image(ws, start_row)
-    add_text_and_styles(ws, start_row, project_name)
+    add_text_and_styles(ws, start_row)
     set_borders(ws, start_row)
     adjust_column_width(ws)
 
 def process_worksheet(sheet_name: str, xl: pd.ExcelFile, new_wb: Workbook, project_name: str):
     df = xl.parse(sheet_name)
-    Layer = df.iloc[:, 20][5:].dropna().tolist()
-    hatch_num = df.iloc[:, 21][5:].dropna().tolist()
-
+    Layer = df.iloc[:, 20][4:].dropna().tolist()
+    hatch_num = df.iloc[:, 21][4:].dropna().tolist()
+    sample_num = df.iloc[:, 1][4:].dropna().tolist()
+    sample_depth = df.iloc[:, 0][4:].dropna().tolist()
+    N_value = df.iloc[:, 5][4:].dropna().tolist()
+    N1_value = df.iloc[:, 2][4:].tolist()
+    N2_value = df.iloc[:, 3][4:].tolist()
+    N3_value = df.iloc[:, 4][4:].tolist()
     ws = new_wb[sheet_name]
-    page = math.ceil(max(Layer) / 14.5)
+    page = math.ceil(max(Layer) / 15)
+
     for i in range(page):
-        setup_worksheet(ws, i * 46 + 1, project_name)
+            setup_worksheet(ws, i * 46 + 1, project_name)
+
+            # Set project name in the specific cell
+            project_name_cell = ws[f'D{i * 46 + 6}']
+            project_name_cell.value = project_name
+            project_name_cell.font = Font(name='Times New Roman', size=12, bold=True)
+            project_name_cell.alignment = Alignment(horizontal='left', vertical='center')
+            
+            # Set sheet name in the specific cell
+            sheet_name_cell = ws[f'D{i * 46 + 8}']
+            sheet_name_cell.value = sheet_name
+            sheet_name_cell.font = Font(name='Times New Roman', size=12, bold=False)
+            sheet_name_cell.alignment = Alignment(horizontal='left', vertical='center')
+
+            # Page number
+            page_num = str(i + 1)
+            page_cell = ws[f'U{i * 46 + 8}']
+            page_cell.value = '第'+page_num+'頁'
+            page_cell.font = Font(name='Times New Roman', size=12, bold=False)
+            page_cell.alignment = Alignment(horizontal='left', vertical='center')
+
+            for Layer_depth  in Layer:
+                # Layer depth
+                Layer_depth = round(Layer_depth, 1)
+                if Layer_depth<0.5:
+                    Layer_depth = 0.5
+                y1=round(Layer_depth/0.5)
+
+                y2=(y1/30)
+                if y1%30==0:
+                    y2=y2-1
+                else:
+                    y2=math.floor(y2)
+
+                insert_position = int(y1+(y2+1)*16)
+                Layer_depth_cell = ws[f'A{insert_position}']
+                Layer_depth_cell.value = Layer_depth
+                Layer_depth_cell.font = Font(name='Times New Roman', size=12, bold=False)
+                Layer_depth_cell.alignment = Alignment(horizontal='center', vertical='center')
+
+            for sample_depthes,sample_nums,N,N1,N2,N3 in zip(sample_depth, sample_num, N_value, N1_value, N2_value, N3_value):
+                print(N)
+                # Sample depth
+                sample_depthes = round(sample_depthes, 1)
+                if sample_depthes<0.5:
+                    sample_depthes = 0.5
+                y1=round(sample_depthes/0.5)
+
+                y2=(y1/30)
+                if y1%30==0:
+                    y2=y2-1
+                else:
+                    y2=math.floor(y2)
+                insert_position = int(y1+(y2+1)*16)    
+                sample_num_cell = ws[f'D{insert_position}']
+                sample_num_cell.value = sample_nums
+                sample_num_cell.font = Font(name='Times New Roman', size=12, bold=False)
+                sample_num_cell.alignment = Alignment(horizontal='center', vertical='center')
+
+                # N value
+                N_cell = ws[f'H{insert_position}']
+                N_cell.value = N
+                N_cell.font = Font(name='Times New Roman', size=12, bold=False)
+                N_cell.alignment = Alignment(horizontal='center', vertical='center')
+
+                # N1 value
+                N1_cell = ws[f'E{insert_position}']
+                N1_cell.value = N1
+                N1_cell.font = Font(name='Times New Roman', size=12, bold=False)
+                N1_cell.alignment = Alignment(horizontal='center', vertical='center')
+
+                # N2 value
+                N2_cell = ws[f'F{insert_position}']
+                N2_cell.value = N2
+                N2_cell.font = Font(name='Times New Roman', size=12, bold=False)
+                N2_cell.alignment = Alignment(horizontal='center', vertical='center')
+
+                # N3 value
+                N3_cell = ws[f'G{insert_position}']
+                N3_cell.value = N3
+                N3_cell.font = Font(name='Times New Roman', size=12, bold=False)
+                N3_cell.alignment = Alignment(horizontal='center', vertical='center')
+
+
+
+                
+
+
+
+                
+
+                
+
+    
 
 def main():
     args = parse_arguments()
@@ -311,6 +405,7 @@ def main():
 
         for sheet_name in sheet_names:
             process_worksheet(sheet_name, xl, new_wb, project_name)
+
 
         if os.path.exists(args.output):
             os.remove(args.output)
