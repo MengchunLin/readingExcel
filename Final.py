@@ -21,7 +21,9 @@ lists = []
 pre_num=0
 example_list=[]
 example_list_int=[]
-all_lists = []
+all_dict = []
+all_distance=[]
+all_Ground_EL=[]
 #ruler
 ruler_top=0
 ruler_bottom=0
@@ -196,6 +198,7 @@ for index, sheet_name in enumerate(sheet_names[1:], start=1):
     #孔頂高
     df = pd.read_excel(xl, sheet_name, header=None)
     Ground_EL= df.iloc[0,5]
+    all_Ground_EL.append(Ground_EL)
 #------------------------------------------------------------------------------------------------------------------------------------
     #位置distance
     N_2=df.iloc[1,1]
@@ -210,6 +213,8 @@ for index, sheet_name in enumerate(sheet_names[1:], start=1):
         E_1=E_2
         N_1=N_2
         distance=distance+distance_
+
+    all_distance.append(distance)
 #------------------------------------------------------------------------------------------------------------------------------------
     # 鑽孔名稱 (hole_width/2*scale_factor))
     text_value = f"{sheet_name}"  # 使用 f-string 來格式化文字
@@ -300,6 +305,10 @@ for index, sheet_name in enumerate(sheet_names[1:], start=1):
     spt_n = df.iloc[:, 5]
     spt_n=spt_n[5:]
 
+    data_dict=dict(zip(hatch_num,Layer))
+    all_dict.append(data_dict)
+
+
     # Layer列數字迭代
     t=0
     # for index, sheet_name in enumerate(sheet_names):
@@ -352,11 +361,9 @@ for index, sheet_name in enumerate(sheet_names[1:], start=1):
         text.TextAlignmentPoint = insert_point
         nan_encountered = False
 
-        new_list = []  # 在每次迴圈開始時創建一個新列表
-        y2=round(y1,2)
-        for i in hatch_num:
-            new_list.append([i,y2])  # 將每個 LOG 添加到新列表中
-        all_lists.append(new_list)  # 將新列表添加到 all_lists 中
+        # Each hatch in a sheet has a unique number
+
+        
 
 
         t+=1
@@ -512,4 +519,28 @@ for i in range(ruler_top, ruler_bottom,-1):
         line=acad.AddLine(APoint(0, i * scale_factor_h), APoint(0.5 * scale_factor_w, i * scale_factor_h))
         line.LineWeight=5
 acad.AddLine(y_start_point,y_end_point)
-print(all_lists)
+
+# If key[i]==key[i+1] then connect the two points
+
+for i in range(len(all_dict) - 1):
+    current_dict = all_dict[i]
+    next_dict = all_dict[i + 1]
+    first_key_current = list(current_dict.keys())[0]
+    first_key_next = list(next_dict.keys())[0]
+    print(first_key_current, first_key_next)
+
+    for key_1 in current_dict:
+        for key_2 in next_dict:
+            if key_1 == key_2:
+                p1 = APoint((all_distance[i] + hole_width) * scale_factor_w, (all_Ground_EL[i] - float(current_dict[key_1])) * scale_factor_h)
+                p2 = APoint((all_distance[i + 1]) * scale_factor_w, (all_Ground_EL[i + 1] - float(next_dict[key_2])) * scale_factor_h)
+                line = acad.AddLine(p1, p2)
+                line.LineWeight = 5
+
+    if first_key_current == first_key_next:
+        p1 = APoint((all_distance[i] + hole_width) * scale_factor_w, 
+                    (all_Ground_EL[i] * scale_factor_h))
+        p2 = APoint((all_distance[i + 1]) * scale_factor_w, 
+                    (all_Ground_EL[i + 1] * scale_factor_h))
+        line = acad.AddLine(p1, p2)
+        line.LineWeight = 5
