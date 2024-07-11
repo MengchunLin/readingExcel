@@ -8,10 +8,13 @@ from openpyxl.styles import Alignment, Font, Border, Side
 import pandas as pd
 import math
 import argparse
+import tkinter as tk
+from tkinter import filedialog
+from tkinter import filedialog, messagebox
 
 # Configuration
-INPUT_FILE = '七孔測試.xlsx'
-OUTPUT_FILE = 'new_single_hole_output.xlsx'
+INPUT_FILE = ''
+OUTPUT_FILE = ''
 LOGO_FILE = '萬頂圖樣.png'
 MAIN_SHEET = '工作表1'
 PROJECT_NAME_CELL = (0,1)
@@ -22,6 +25,58 @@ MEDIUM_BORDER = Side(border_style='medium')
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+
+
+# 配置和常量部分保持不變
+
+# 設置日誌
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+class Application(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("Excel 處理程序")
+        self.geometry("300x100")
+        self.create_widgets()
+
+    def create_widgets(self):
+        self.start_button = tk.Button(self, text="單孔柱狀圖報告建立", command=self.start_processing)
+        self.start_button.pack(expand=True)
+
+    def start_processing(self):
+        INPUT_FILE, OUTPUT_FILE = self.select_files()
+        if not INPUT_FILE or not OUTPUT_FILE:
+            messagebox.showinfo("信息", "文件選擇已取消")
+            return
+
+        self.process_files(INPUT_FILE, OUTPUT_FILE)
+
+    def select_files(self):
+        INPUT_FILE = filedialog.askopenfilename(title="選擇輸入Excel文件", filetypes=[("Excel files", "*.xlsx")])
+        if not INPUT_FILE:
+            return None, None
+
+        OUTPUT_FILE = filedialog.asksaveasfilename(title="保存輸出Excel文件", defaultextension=".xlsx", filetypes=[("Excel files", "*.xlsx")])
+        if not OUTPUT_FILE:
+            return None, None
+
+        return INPUT_FILE, OUTPUT_FILE
+    def process_files(self, INPUT_FILE, OUTPUT_FILE):
+        try:
+            xl, sheet_names, project_name = load_excel_file(INPUT_FILE)
+            new_wb = create_new_workbook(sheet_names)
+
+            for sheet_name in sheet_names:
+                process_worksheet(sheet_name, xl, new_wb, project_name)
+
+            if os.path.exists(OUTPUT_FILE):
+                os.remove(OUTPUT_FILE)
+            
+            new_wb.save(OUTPUT_FILE)
+            messagebox.showinfo("成功", f"成功創建 {OUTPUT_FILE}")
+        except Exception as e:
+            messagebox.showerror("錯誤", f"發生錯誤: {e}")
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Process Excel file for geological data.')
@@ -342,7 +397,6 @@ def process_worksheet(sheet_name: str, xl: pd.ExcelFile, new_wb: Workbook, proje
                 Layer_depth_cell.alignment = Alignment(horizontal='center', vertical='center')
 
             for sample_depthes,sample_nums,N,N1,N2,N3 in zip(sample_depth, sample_num, N_value, N1_value, N2_value, N3_value):
-                print(N)
                 # Sample depth
                 sample_depthes = round(sample_depthes, 1)
                 if sample_depthes<0.5:
@@ -397,23 +451,8 @@ def process_worksheet(sheet_name: str, xl: pd.ExcelFile, new_wb: Workbook, proje
     
 
 def main():
-    args = parse_arguments()
-    
-    try:
-        xl, sheet_names, project_name = load_excel_file(args.input)
-        new_wb = create_new_workbook(sheet_names)
-
-        for sheet_name in sheet_names:
-            process_worksheet(sheet_name, xl, new_wb, project_name)
-
-
-        if os.path.exists(args.output):
-            os.remove(args.output)
-        
-        new_wb.save(args.output)
-        logging.info(f"Successfully created {args.output}")
-    except Exception as e:
-        logging.error(f"An error occurred: {e}")
+    app=Application()
+    app.mainloop()
 
 if __name__ == "__main__":
     main()
