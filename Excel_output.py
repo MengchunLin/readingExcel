@@ -361,6 +361,7 @@ def process_worksheet(sheet_name: str, xl: pd.ExcelFile, new_wb: Workbook, proje
 
     for i in range(page):
             setup_worksheet(ws, i * 46 + 1, project_name)
+            
 
             # Set project name in the specific cell
             project_name_cell = ws[f'D{i * 46 + 6}']
@@ -381,7 +382,7 @@ def process_worksheet(sheet_name: str, xl: pd.ExcelFile, new_wb: Workbook, proje
             page_cell.font = Font(name='Times New Roman', size=12, bold=False)
             page_cell.alignment = Alignment(horizontal='left', vertical='center')
 
-            for Layer_depth  in Layer:
+            for Layer_depth,hatch_num  in zip(Layer, hatch_num):
                 # Layer depth
                 Layer_depth = round(Layer_depth, 1)
                 if Layer_depth<0.5:
@@ -399,6 +400,21 @@ def process_worksheet(sheet_name: str, xl: pd.ExcelFile, new_wb: Workbook, proje
                 Layer_depth_cell.value = Layer_depth
                 Layer_depth_cell.font = Font(name='Times New Roman', size=12, bold=False)
                 Layer_depth_cell.alignment = Alignment(horizontal='center', vertical='center')
+
+                #insert pattern-----------------------------------
+                print(hatch_num)
+                file_path=hatch_num, "*.wmf"
+                cell_range=ws[f'c{insert_position}:c{insert_position+15}']
+                top = cell_range.Top
+                left = cell_range.Left
+                width = cell_range.Width
+                height = cell_range.Height
+                shape = ws.Shapes.AddShape(1, left, top, width, height)
+                shape.Fill.UserPicture(file_path)
+                shape.Fill.TextureTile = True
+                # 調整刻度
+                shape.Fill.TextureHorizontalScale = 0.02  # X 刻度百分比: 2%
+                shape.Fill.TextureVerticalScale = 0.02  # Y 刻度百分比: 2%
 
             for sample_depthes,sample_nums,N,N1,N2,N3 in zip(sample_depth, sample_num, N_value, N1_value, N2_value, N3_value):
                 # Sample depth
