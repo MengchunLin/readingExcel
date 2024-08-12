@@ -11,6 +11,8 @@ import argparse
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import filedialog, messagebox
+from openpyxl.styles import PatternFill, Border, Side
+from openpyxl.utils import get_column_letter
 
 # Configuration
 INPUT_FILE = ''
@@ -76,7 +78,10 @@ class Application(tk.Tk):
             new_wb.save(OUTPUT_FILE)
             messagebox.showinfo("成功", f"成功創建 {OUTPUT_FILE}")
         except Exception as e:
-            messagebox.showerror("錯誤", f"發生錯誤: {e}")
+            error_msg = f"發生錯誤: {e}"
+            print(error_msg)  # 輸出到終端
+            logging.error(error_msg)  # 記錄到日誌
+            messagebox.showerror("錯誤", error_msg)  # GUI顯示
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Process Excel file for geological data.')
@@ -150,7 +155,6 @@ def merge_cells(ws, start_row: int):
         (start_row+7, 7, start_row+7, 8),
         (start_row+7, 9, start_row+7, 11),
         (start_row+7,12,start_row+7,13),
-        
         (start_row+7,17,start_row+7,18),
         (start_row+7,21,start_row+7,24),
         (start_row+8,1,start_row+8,3),
@@ -398,7 +402,7 @@ def process_worksheet(sheet_name: str, xl: pd.ExcelFile, new_wb: Workbook, proje
 
             for sample_depthes,sample_nums,N,N1,N2,N3 in zip(sample_depth, sample_num, N_value, N1_value, N2_value, N3_value):
                 # Sample depth
-                sample_depthes = round(sample_depthes, 1)
+                sample_depthes = round(sample_depthes, 1) #四捨五入到小數點第一位
                 if sample_depthes<0.5:
                     sample_depthes = 0.5
                 y1=round(sample_depthes/0.5)
@@ -414,7 +418,11 @@ def process_worksheet(sheet_name: str, xl: pd.ExcelFile, new_wb: Workbook, proje
                 sample_num_cell.font = Font(name='Times New Roman', size=12, bold=False)
                 sample_num_cell.alignment = Alignment(horizontal='center', vertical='center')
 
-                # N value
+                #insert pattern-----------------------------------
+                # 加载图片
+ 
+                
+                # N value-----------------------------------
                 N_cell = ws[f'H{insert_position}']
                 N_cell.value = N
                 N_cell.font = Font(name='Times New Roman', size=12, bold=False)
@@ -437,18 +445,6 @@ def process_worksheet(sheet_name: str, xl: pd.ExcelFile, new_wb: Workbook, proje
                 N3_cell.value = N3
                 N3_cell.font = Font(name='Times New Roman', size=12, bold=False)
                 N3_cell.alignment = Alignment(horizontal='center', vertical='center')
-
-
-
-                
-
-
-
-                
-
-                
-
-    
 
 def main():
     app=Application()
