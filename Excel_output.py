@@ -167,11 +167,11 @@ def merge_cells(ws, start_row: int):
     for merge in merge_cells_instructions:
         ws.merge_cells(start_row=merge[0], start_column=merge[1], end_row=merge[2], end_column=merge[3])
 
-def insert_image(ws, start_row: int):
-    img = Image(LOGO_FILE)
-    img.width, img.height = 550, 60
-    target_cell = f'G{start_row}'
-    ws.add_image(img, target_cell)
+# def insert_image(ws, start_row: int):
+#     img = Image(LOGO_FILE)
+#     img.width, img.height = 550, 60
+#     target_cell = f'G{start_row}'
+#     ws.add_image(img, target_cell)
 
 def add_text_and_styles(ws, start_row: int):
     cells_to_update = [
@@ -341,7 +341,7 @@ def set_borders(ws, start_row: int):
 
 def setup_worksheet(ws, start_row: int, project_name: str):
     merge_cells(ws, start_row)
-    insert_image(ws, start_row)
+    # insert_image(ws, start_row)
     add_text_and_styles(ws, start_row)
     set_borders(ws, start_row)
     adjust_column_width(ws)
@@ -402,19 +402,19 @@ def process_worksheet(sheet_name: str, xl: pd.ExcelFile, new_wb: Workbook, proje
                 Layer_depth_cell.alignment = Alignment(horizontal='center', vertical='center')
 
                 #insert pattern-----------------------------------
-                print(hatch_num)
-                file_path=hatch_num, "*.wmf"
-                cell_range=ws[f'c{insert_position}:c{insert_position+15}']
-                top = cell_range.Top
-                left = cell_range.Left
-                width = cell_range.Width
-                height = cell_range.Height
-                shape = ws.Shapes.AddShape(1, left, top, width, height)
-                shape.Fill.UserPicture(file_path)
-                shape.Fill.TextureTile = True
-                # 調整刻度
-                shape.Fill.TextureHorizontalScale = 0.02  # X 刻度百分比: 2%
-                shape.Fill.TextureVerticalScale = 0.02  # Y 刻度百分比: 2%
+                # print(hatch_num)
+                # file_path=hatch_num, "*.wmf"
+                # cell_range=ws[f'c{insert_position}:c{insert_position+15}']
+                # top = cell_range.Top
+                # left = cell_range.Left
+                # width = cell_range.Width
+                # height = cell_range.Height
+                # shape = ws.Shapes.AddShape(1, left, top, width, height)
+                # shape.Fill.UserPicture(file_path)
+                # shape.Fill.TextureTile = True
+                # # 調整刻度
+                # shape.Fill.TextureHorizontalScale = 0.02  # X 刻度百分比: 2%
+                # shape.Fill.TextureVerticalScale = 0.02  # Y 刻度百分比: 2%
 
             for sample_depthes,sample_nums,N,N1,N2,N3 in zip(sample_depth, sample_num, N_value, N1_value, N2_value, N3_value):
                 # Sample depth
