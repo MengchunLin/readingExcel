@@ -13,6 +13,7 @@ from tkinter import filedialog
 from tkinter import filedialog, messagebox
 from openpyxl.styles import PatternFill, Border, Side
 from openpyxl.utils import get_column_letter
+import traceback
 
 # Configuration
 INPUT_FILE = ''
@@ -64,6 +65,8 @@ class Application(tk.Tk):
             return None, None
 
         return INPUT_FILE, OUTPUT_FILE
+
+
     def process_files(self, INPUT_FILE, OUTPUT_FILE):
         try:
             xl, sheet_names, project_name = load_excel_file(INPUT_FILE)
@@ -78,10 +81,10 @@ class Application(tk.Tk):
             new_wb.save(OUTPUT_FILE)
             messagebox.showinfo("成功", f"成功創建 {OUTPUT_FILE}")
         except Exception as e:
-            error_msg = f"發生錯誤: {e}"
+            error_msg = f"發生錯誤:\n{traceback.format_exc()}"
             print(error_msg)  # 輸出到終端
             logging.error(error_msg)  # 記錄到日誌
-            messagebox.showerror("錯誤", error_msg)  # GUI顯示
+            messagebox.showerror("錯誤", f"發生錯誤: {str(e)}\n\n詳細信息已輸出到終端")
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Process Excel file for geological data.')
@@ -165,6 +168,7 @@ def merge_cells(ws, start_row: int):
         (start_row+8,21,start_row+8,24),
     ]
     for merge in merge_cells_instructions:
+
         ws.merge_cells(start_row=merge[0], start_column=merge[1], end_row=merge[2], end_column=merge[3])
 
 # def insert_image(ws, start_row: int):
@@ -288,56 +292,63 @@ def add_text_and_styles(ws, start_row: int):
         actual_cell.value = value
         set_cell_style(actual_cell)
 
+
 def set_borders(ws, start_row: int):
+    # Define border styles
+    medium = Side(style='medium')
+    thin = Side(style='thin')
+    
+    medium_border = Border(left=medium, right=medium, top=medium, bottom=medium)
+    thin_border = Border(left=thin, right=thin, top=thin, bottom=thin)
+    left_medium_border = Border(left=medium)
+    right_medium_border = Border(right=medium)
+    bottom_medium_border = Border(bottom=medium)
+    top_medium_border = Border(top=medium)
+    right_thin_border = Border(right=thin)
+    
     for i in range(start_row, start_row + 46, 46):
-    # 設置邊框邏輯
-        for col in range(1, 25):
-            ws.cell(row=i + 8, column=col).border = Border(bottom=MEDIUM_BORDER)
-            ws.cell(row=i + 46, column=col).border = Border(top=MEDIUM_BORDER)
-
-        for col in range(2, 24):
-            for row in range(i + 17, i + 47):
-                ws.cell(row=row, column=col).border = Border(right=THIN_BORDER)
-
-        for row in range(i + 9, i + 46):
-            ws.cell(row=row, column=1).border = Border(left=MEDIUM_BORDER)
-            ws.cell(row=row, column=24).border = Border(right=MEDIUM_BORDER)
-
-        for row in ws.iter_rows(i + 16, i + 16, 3, 23):
+        end_row = i + 46
+        
+        # Apply borders to the entire range
+        for row in ws.iter_rows(min_row=i+8, max_row=end_row, min_col=1, max_col=24):
             for cell in row:
-                cell.border = Border(top=THIN_BORDER, left=THIN_BORDER)
-
-        for row in ws.iter_rows(i + 15, i + 47, 2, 2):
-            for cell in row:
-                cell.border = Border(bottom=THIN_BORDER, top=THIN_BORDER, right=THIN_BORDER, left=THIN_BORDER)
-
-        ws[f'A{i + 15}'].border = Border(bottom=THIN_BORDER, left=MEDIUM_BORDER)
-        ws[f'X{i + 15}'].border = Border(bottom=THIN_BORDER, right=MEDIUM_BORDER)
-        ws[f'X{i + 16}'].border = Border(right=MEDIUM_BORDER,left=THIN_BORDER)
-
-        for row in ws.iter_rows(i + 9, i + 15, 2, 23):
-            for cell in row:
-                cell.border = Border(right=THIN_BORDER)
-
-        for row in ws.iter_rows(i + 15, i + 15, 3, 23):
-            for cell in row:
-                cell.border = Border(left=THIN_BORDER, right=THIN_BORDER, bottom=THIN_BORDER)
-
-        for row in ws.iter_rows(i + 10, i + 15, 2, 23):
-            for cell in row:
-                cell.border = Border(right=THIN_BORDER)
-
-        for row in ws.iter_rows(i + 13, i + 13, 5, 8):
-            for cell in row:
-                cell.border = Border(bottom=THIN_BORDER, right=THIN_BORDER, left=THIN_BORDER)
-
-        for row in ws.iter_rows(i + 12, i + 12, 11, 14):
-            for cell in row:
-                cell.border = Border(top=THIN_BORDER, right=THIN_BORDER, left=THIN_BORDER)
-
-        for row in ws.iter_rows(i + 14, i + 14, 22, 23):
-            for cell in row:
-                cell.border = Border(top=THIN_BORDER, right=THIN_BORDER, left=THIN_BORDER)
+                if cell.row == i+8:
+                    cell.border = bottom_medium_border
+                elif cell.row == end_row:
+                    cell.border = top_medium_border
+                elif cell.column == 1:
+                    cell.border = left_medium_border
+                elif cell.column == 24:
+                    cell.border = right_medium_border
+                elif i+16 <= cell.row < end_row and cell.column > 1:
+                    cell.border = right_thin_border
+        
+        # Special cases
+        # ws.merge_cells(start_row=i+16, start_column=3, end_row=i+16, end_column=23)
+        # ws[f'C{i+16}'].border = Border(top=thin, left=thin)
+        
+        for row in range(i+15, end_row):
+            ws.cell(row=row, column=2).border = thin_border
+        
+        ws[f'A{i+15}'].border = Border(bottom=thin, left=medium)
+        ws[f'X{i+15}'].border = Border(bottom=thin, right=medium)
+        ws[f'X{i+16}'].border = Border(right=medium, left=thin)
+        
+        for row in range(i+9, i+16):
+            for col in range(2, 24):
+                ws.cell(row=row, column=col).border = right_thin_border
+        
+        for col in range(3, 24):
+            ws.cell(row=i+15, column=col).border = Border(left=thin, right=thin, bottom=thin)
+        
+        for col in range(5, 9):
+            ws.cell(row=i+13, column=col).border = Border(bottom=thin, right=thin, left=thin)
+        
+        for col in range(11, 15):
+            ws.cell(row=i+12, column=col).border = Border(top=thin, right=thin, left=thin)
+        
+        for col in range(22, 24):
+            ws.cell(row=i+14, column=col).border = Border(top=thin, right=thin, left=thin)
 
 def setup_worksheet(ws, start_row: int, project_name: str):
     merge_cells(ws, start_row)
@@ -352,6 +363,7 @@ def process_worksheet(sheet_name: str, xl: pd.ExcelFile, new_wb: Workbook, proje
     hatch_num = df.iloc[:, 21][4:].dropna().tolist()
     sample_num = df.iloc[:, 1][4:].dropna().tolist()
     sample_depth = df.iloc[:, 0][4:].dropna().tolist()
+    Classi_fication = df.iloc[:, 14][5:].dropna().tolist()
     N_value = df.iloc[:, 5][4:].dropna().tolist()
     N1_value = df.iloc[:, 2][4:].tolist()
     N2_value = df.iloc[:, 3][4:].tolist()
@@ -359,10 +371,11 @@ def process_worksheet(sheet_name: str, xl: pd.ExcelFile, new_wb: Workbook, proje
     ws = new_wb[sheet_name]
     page = math.ceil(max(Layer) / 15)
 
+
+
     for i in range(page):
             setup_worksheet(ws, i * 46 + 1, project_name)
             
-
             # Set project name in the specific cell
             project_name_cell = ws[f'D{i * 46 + 6}']
             project_name_cell.value = project_name
@@ -382,8 +395,15 @@ def process_worksheet(sheet_name: str, xl: pd.ExcelFile, new_wb: Workbook, proje
             page_cell.font = Font(name='Times New Roman', size=12, bold=False)
             page_cell.alignment = Alignment(horizontal='left', vertical='center')
 
-            for Layer_depth,hatch_num  in zip(Layer, hatch_num):
+            if isinstance(Layer, (int, float)):
+                Layer = [Layer]
+            if isinstance(hatch_num, (int, float)):
+                hatch_num = [hatch_num]
+
+            for Layer_depth,hatch_num  in zip(Layer, hatch_num,):
                 # Layer depth
+                print('Layer_depth:', Layer_depth)
+                print('hatch_num:', hatch_num)
                 Layer_depth = round(Layer_depth, 1)
                 if Layer_depth<0.5:
                     Layer_depth = 0.5
@@ -400,6 +420,14 @@ def process_worksheet(sheet_name: str, xl: pd.ExcelFile, new_wb: Workbook, proje
                 Layer_depth_cell.value = Layer_depth
                 Layer_depth_cell.font = Font(name='Times New Roman', size=12, bold=False)
                 Layer_depth_cell.alignment = Alignment(horizontal='center', vertical='center')
+
+                # Classi- fication
+                # Classi_fication = ws[f'J{insert_position}']
+                # Classi_fication.value = Classi_fication
+                # Classi_fication.font = Font(name='Times New Roman', size=12, bold=False)
+                # Classi_fication.alignment = Alignment(horizontal='center', vertical='center')
+
+
 
                 #insert pattern-----------------------------------
                 # print(hatch_num)
