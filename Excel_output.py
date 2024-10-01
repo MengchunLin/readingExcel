@@ -171,11 +171,11 @@ def merge_cells(ws, start_row: int):
 
         ws.merge_cells(start_row=merge[0], start_column=merge[1], end_row=merge[2], end_column=merge[3])
 
-# def insert_image(ws, start_row: int):
-#     img = Image(LOGO_FILE)
-#     img.width, img.height = 550, 60
-#     target_cell = f'G{start_row}'
-#     ws.add_image(img, target_cell)
+def insert_image(ws, start_row: int):
+    img = Image(LOGO_FILE)
+    img.width, img.height = 550, 60
+    target_cell = f'G{start_row}'
+    ws.add_image(img, target_cell)
 
 def add_text_and_styles(ws, start_row: int):
     cells_to_update = [
@@ -358,137 +358,148 @@ def setup_worksheet(ws, start_row: int, project_name: str):
     adjust_column_width(ws)
 
 def process_worksheet(sheet_name: str, xl: pd.ExcelFile, new_wb: Workbook, project_name: str):
+    # 讀取Excel數據並轉換為DataFrame
     df = xl.parse(sheet_name)
+    
+    # 提取各個欄位的數據
     Layer = df.iloc[:, 20][4:].dropna().tolist()
     hatch_num = df.iloc[:, 21][4:].dropna().tolist()
     sample_num = df.iloc[:, 1][4:].dropna().tolist()
     sample_depth = df.iloc[:, 0][4:].dropna().tolist()
-    Classi_fication = df.iloc[:, 14][5:].dropna().tolist()
+    Classi_fication = df.iloc[:, 13][5:].dropna().tolist()
     N_value = df.iloc[:, 5][4:].dropna().tolist()
     N1_value = df.iloc[:, 2][4:].tolist()
     N2_value = df.iloc[:, 3][4:].tolist()
     N3_value = df.iloc[:, 4][4:].tolist()
+    
+    # 其他需要的數據欄位
+    Gravel = df.iloc[:, 9][4:].dropna().tolist()
+    Sand = df.iloc[:, 10][4:].dropna().tolist()
+    Silt = df.iloc[:, 11][4:].dropna().tolist()
+    Clay = df.iloc[:, 12][4:].dropna().tolist()
+    Water_content = df.iloc[:, 14][4:].dropna().tolist()
+    Gs = df.iloc[:, 15][4:].dropna().tolist()
+    Density = df.iloc[:, 16][4:].dropna().tolist()
+    Void_ratio = df.iloc[:, 17][4:].dropna().tolist()
+    Liquid_limit = df.iloc[:, 18][4:].dropna().tolist()
+    Plastic_limit = df.iloc[:, 19][4:].dropna().tolist()
+
+    # 設置新的工作表
     ws = new_wb[sheet_name]
+
+    # 計算頁數
     page = math.ceil(max(Layer) / 15)
 
-
-
+    # 開始頁面設置和數據插入
     for i in range(page):
-            setup_worksheet(ws, i * 46 + 1, project_name)
+        # 設置頁面基本信息
+        setup_worksheet(ws, i * 46 + 1, project_name)
+        
+        # 設定項目名稱
+        project_name_cell = ws[f'D{i * 46 + 6}']
+        project_name_cell.value = project_name
+        project_name_cell.font = Font(name='Times New Roman', size=12, bold=True)
+        project_name_cell.alignment = Alignment(horizontal='left', vertical='center')
+
+        # 設定工作表名稱
+        sheet_name_cell = ws[f'D{i * 46 + 8}']
+        sheet_name_cell.value = sheet_name
+        sheet_name_cell.font = Font(name='Times New Roman', size=12, bold=False)
+        sheet_name_cell.alignment = Alignment(horizontal='left', vertical='center')
+
+        # 頁碼
+        page_num = str(i + 1)
+        page_cell = ws[f'U{i * 46 + 8}']
+        page_cell.value = f'第{page_num}頁'
+        page_cell.font = Font(name='Times New Roman', size=12, bold=False)
+        page_cell.alignment = Alignment(horizontal='left', vertical='center')
+
+        # 確保Layer和hatch_num為列表格式
+        if isinstance(Layer, (int, float)):
+            Layer = [Layer]
+        if isinstance(hatch_num, (int, float)):
+            hatch_num = [hatch_num]
+
+        # 插入分層深度和其他數據
+        for Layer_depth, hatch in zip(Layer, hatch_num):
+            # 層深度四捨五入並處理
+            Layer_depth = round(Layer_depth, 1)
+            if Layer_depth < 0.5:
+                Layer_depth = 0.5
+            y1 = round(Layer_depth / 0.5)
+            y2 = (y1 / 30)
+            y2 = math.floor(y2) if y1 % 30 != 0 else y2 - 1
+            insert_position = int(y1 + (y2 + 1) * 16)
             
-            # Set project name in the specific cell
-            project_name_cell = ws[f'D{i * 46 + 6}']
-            project_name_cell.value = project_name
-            project_name_cell.font = Font(name='Times New Roman', size=12, bold=True)
-            project_name_cell.alignment = Alignment(horizontal='left', vertical='center')
-            
-            # Set sheet name in the specific cell
-            sheet_name_cell = ws[f'D{i * 46 + 8}']
-            sheet_name_cell.value = sheet_name
-            sheet_name_cell.font = Font(name='Times New Roman', size=12, bold=False)
-            sheet_name_cell.alignment = Alignment(horizontal='left', vertical='center')
+            # 插入層深度
+            Layer_depth_cell = ws[f'A{insert_position}']
+            Layer_depth_cell.value = Layer_depth
+            Layer_depth_cell.font = Font(name='Times New Roman', size=12, bold=False)
+            Layer_depth_cell.alignment = Alignment(horizontal='center', vertical='center')
 
-            # Page number
-            page_num = str(i + 1)
-            page_cell = ws[f'U{i * 46 + 8}']
-            page_cell.value = '第'+page_num+'頁'
-            page_cell.font = Font(name='Times New Roman', size=12, bold=False)
-            page_cell.alignment = Alignment(horizontal='left', vertical='center')
-
-            if isinstance(Layer, (int, float)):
-                Layer = [Layer]
-            if isinstance(hatch_num, (int, float)):
-                hatch_num = [hatch_num]
-
-            for Layer_depth,hatch_num  in zip(Layer, hatch_num,):
-                # Layer depth
-                print('Layer_depth:', Layer_depth)
-                print('hatch_num:', hatch_num)
-                Layer_depth = round(Layer_depth, 1)
-                if Layer_depth<0.5:
-                    Layer_depth = 0.5
-                y1=round(Layer_depth/0.5)
-
-                y2=(y1/30)
-                if y1%30==0:
-                    y2=y2-1
-                else:
-                    y2=math.floor(y2)
-
-                insert_position = int(y1+(y2+1)*16)
-                Layer_depth_cell = ws[f'A{insert_position}']
-                Layer_depth_cell.value = Layer_depth
-                Layer_depth_cell.font = Font(name='Times New Roman', size=12, bold=False)
-                Layer_depth_cell.alignment = Alignment(horizontal='center', vertical='center')
-
-                # Classi- fication
-                # Classi_fication = ws[f'J{insert_position}']
-                # Classi_fication.value = Classi_fication
-                # Classi_fication.font = Font(name='Times New Roman', size=12, bold=False)
-                # Classi_fication.alignment = Alignment(horizontal='center', vertical='center')
-
-
-
-                #insert pattern-----------------------------------
-                # print(hatch_num)
-                # file_path=hatch_num, "*.wmf"
-                # cell_range=ws[f'c{insert_position}:c{insert_position+15}']
-                # top = cell_range.Top
-                # left = cell_range.Left
-                # width = cell_range.Width
-                # height = cell_range.Height
-                # shape = ws.Shapes.AddShape(1, left, top, width, height)
-                # shape.Fill.UserPicture(file_path)
-                # shape.Fill.TextureTile = True
-                # # 調整刻度
-                # shape.Fill.TextureHorizontalScale = 0.02  # X 刻度百分比: 2%
-                # shape.Fill.TextureVerticalScale = 0.02  # Y 刻度百分比: 2%
-
-            for sample_depthes,sample_nums,N,N1,N2,N3 in zip(sample_depth, sample_num, N_value, N1_value, N2_value, N3_value):
-                # Sample depth
-                sample_depthes = round(sample_depthes, 1) #四捨五入到小數點第一位
-                if sample_depthes<0.5:
+            # 處理其他變量並插入資料
+            for sample_depthes, sample_nums, N, N1, N2, N3, classi_fiction, G, S, M, C, Wn, gs, density, void_ratio, liquid_limit, plastic_limit in zip(sample_depth, sample_num, N_value, N1_value, N2_value, N3_value, Classi_fication, Gravel, Sand, Silt, Clay, Water_content, Gs, Density, Void_ratio, Liquid_limit, Plastic_limit):
+                
+                # 處理樣本深度
+                sample_depthes = round(sample_depthes, 1)
+                if sample_depthes < 0.5:
                     sample_depthes = 0.5
-                y1=round(sample_depthes/0.5)
+                y1 = round(sample_depthes / 0.5)
+                y2 = (y1 / 30)
+                y2 = math.floor(y2) if y1 % 30 != 0 else y2 - 1
+                insert_position = int(y1 + (y2 + 1) * 16)
 
-                y2=(y1/30)
-                if y1%30==0:
-                    y2=y2-1
-                else:
-                    y2=math.floor(y2)
-                insert_position = int(y1+(y2+1)*16)    
+                # 插入樣本號碼
                 sample_num_cell = ws[f'D{insert_position}']
                 sample_num_cell.value = sample_nums
                 sample_num_cell.font = Font(name='Times New Roman', size=12, bold=False)
                 sample_num_cell.alignment = Alignment(horizontal='center', vertical='center')
 
-                #insert pattern-----------------------------------
-                # 加载图片
- 
-                
-                # N value-----------------------------------
-                N_cell = ws[f'H{insert_position}']
-                N_cell.value = N
-                N_cell.font = Font(name='Times New Roman', size=12, bold=False)
-                N_cell.alignment = Alignment(horizontal='center', vertical='center')
+                # 插入分類資料
+                classi_fiction_cell = ws[f'J{insert_position}']
+                classi_fiction_cell.value = classi_fiction
+                classi_fiction_cell.font = Font(name='Times New Roman', size=12, bold=False)
+                classi_fiction_cell.alignment = Alignment(horizontal='center', vertical='center')
 
-                # N1 value
-                N1_cell = ws[f'E{insert_position}']
-                N1_cell.value = N1
-                N1_cell.font = Font(name='Times New Roman', size=12, bold=False)
-                N1_cell.alignment = Alignment(horizontal='center', vertical='center')
+                # 插入 N、N1、N2、N3 值
+                ws[f'H{insert_position}'].value = N
+                ws[f'H{insert_position}'].font = Font(name='Times New Roman', size=12, bold=False)
+                ws[f'H{insert_position}'].alignment = Alignment(horizontal='center', vertical='center')
 
-                # N2 value
-                N2_cell = ws[f'F{insert_position}']
-                N2_cell.value = N2
-                N2_cell.font = Font(name='Times New Roman', size=12, bold=False)
-                N2_cell.alignment = Alignment(horizontal='center', vertical='center')
+                ws[f'E{insert_position}'].value = N1
+                ws[f'E{insert_position}'].font = Font(name='Times New Roman', size=12, bold=False)
+                ws[f'E{insert_position}'].alignment = Alignment(horizontal='center', vertical='center')
 
-                # N3 value
-                N3_cell = ws[f'G{insert_position}']
-                N3_cell.value = N3
-                N3_cell.font = Font(name='Times New Roman', size=12, bold=False)
-                N3_cell.alignment = Alignment(horizontal='center', vertical='center')
+                ws[f'F{insert_position}'].value = N2
+                ws[f'F{insert_position}'].font = Font(name='Times New Roman', size=12, bold=False)
+                ws[f'F{insert_position}'].alignment = Alignment(horizontal='center', vertical='center')
+
+                ws[f'G{insert_position}'].value = N3
+                ws[f'G{insert_position}'].font = Font(name='Times New Roman', size=12, bold=False)
+                ws[f'G{insert_position}'].alignment = Alignment(horizontal='center', vertical='center')
+
+                # 插入 Gravel, Sand, Silt, Clay, Water_content, Gs, Density, Void_ratio, Liquid_limit, Plastic_limit
+                ws[f'K{insert_position}'].value = G
+                ws[f'L{insert_position}'].value = S
+                ws[f'M{insert_position}'].value = M
+                ws[f'N{insert_position}'].value = C
+                ws[f'O{insert_position}'].value = Wn
+                ws[f'P{insert_position}'].value = gs
+                ws[f'Q{insert_position}'].value = density
+                ws[f'R{insert_position}'].value = void_ratio
+                ws[f'S{insert_position}'].value = liquid_limit
+                ws[f'T{insert_position}'].value = plastic_limit
+
+                # 設置單元格格式
+                for cell_range in [f'K{insert_position}', f'L{insert_position}', f'M{insert_position}', f'N{insert_position}', f'O{insert_position}', f'P{insert_position}', f'Q{insert_position}', f'R{insert_position}', f'S{insert_position}', f'T{insert_position}']:
+                    ws[cell_range].font = Font(name='Times New Roman', size=12, bold=False)
+                    ws[cell_range].alignment = Alignment(horizontal='center', vertical='center')
+
+
+
+
+
+
 
 def main():
     app=Application()
