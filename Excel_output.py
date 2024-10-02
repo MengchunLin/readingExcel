@@ -350,6 +350,14 @@ def set_borders(ws, start_row: int):
         for col in range(22, 24):
             ws.cell(row=i+14, column=col).border = Border(top=thin, right=thin, left=thin)
 
+def get_column_width(worksheet, col_letter):
+    """獲取指定列的寬度"""
+    return worksheet.Columns[col_letter].Width
+
+def get_row_height(worksheet, row):
+    """獲取指定行的高度"""
+    return worksheet.Rows[row].Height
+
 def setup_worksheet(ws, start_row: int, project_name: str):
     merge_cells(ws, start_row)
     # insert_image(ws, start_row)
