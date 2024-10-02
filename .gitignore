@@ -1,2 +1,4 @@
 ./vscode
 venv/
+/Excel_output.spec
+/new_single_hole_output.xlsx
