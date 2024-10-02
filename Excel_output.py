@@ -423,7 +423,7 @@ def process_worksheet(sheet_name: str, xl: pd.ExcelFile, new_wb: Workbook, proje
         # 插入分層深度和其他數據
         for Layer_depth, hatch in zip(Layer, hatch_num):
             # 層深度四捨五入並處理
-            Layer_depth = round(Layer_depth, 1)
+            Layer_depth = round(Layer_depth, 2)
             if Layer_depth < 0.5:
                 Layer_depth = 0.5
             y1 = round(Layer_depth / 0.5)
