@@ -14,6 +14,9 @@ from tkinter import filedialog, messagebox
 from openpyxl.styles import PatternFill, Border, Side
 from openpyxl.utils import get_column_letter
 import traceback
+import win32com.client as win32
+import math
+
 
 # Configuration
 INPUT_FILE = ''
@@ -35,6 +38,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 # 設置日誌
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
 
 class Application(tk.Tk):
     def __init__(self):
@@ -350,13 +354,7 @@ def set_borders(ws, start_row: int):
         for col in range(22, 24):
             ws.cell(row=i+14, column=col).border = Border(top=thin, right=thin, left=thin)
 
-def get_column_width(worksheet, col_letter):
-    """獲取指定列的寬度"""
-    return worksheet.Columns[col_letter].Width
 
-def get_row_height(worksheet, row):
-    """獲取指定行的高度"""
-    return worksheet.Rows[row].Height
 
 def setup_worksheet(ws, start_row: int, project_name: str):
     merge_cells(ws, start_row)
@@ -430,7 +428,7 @@ def process_worksheet(sheet_name: str, xl: pd.ExcelFile, new_wb: Workbook, proje
 
         # 插入分層深度和其他數據
         for Layer_depth, hatch in zip(Layer, hatch_num):
-            # 層深度四捨五入並處理
+            # 處理層深度四捨五入
             Layer_depth = round(Layer_depth, 2)
             if Layer_depth < 0.5:
                 Layer_depth = 0.5
@@ -439,11 +437,18 @@ def process_worksheet(sheet_name: str, xl: pd.ExcelFile, new_wb: Workbook, proje
             y2 = math.floor(y2) if y1 % 30 != 0 else y2 - 1
             insert_position = int(y1 + (y2 + 1) * 16)
             
-            # 插入層深度
+            # 插入層深度到單元格
             Layer_depth_cell = ws[f'A{insert_position}']
             Layer_depth_cell.value = Layer_depth
-            Layer_depth_cell.font = Font(name='Times New Roman', size=12, bold=False)
+            Layer_depth_cell.font = Font(name='Times New Roman', size=12)
             Layer_depth_cell.alignment = Alignment(horizontal='center', vertical='center')
+
+            # 根據 hatch 數值生成對應的 WMF 文件名
+            file_name = f"hatch_{hatch}.wmf"
+
+
+
+
 
             # 處理其他變量並插入資料
             for sample_depthes, sample_nums, N, N1, N2, N3, classi_fiction, G, S, M, C, Wn, gs, density, void_ratio, liquid_limit, plastic_limit in zip(sample_depth, sample_num, N_value, N1_value, N2_value, N3_value, Classi_fication, Gravel, Sand, Silt, Clay, Water_content, Gs, Density, Void_ratio, Liquid_limit, Plastic_limit):
@@ -504,7 +509,7 @@ def process_worksheet(sheet_name: str, xl: pd.ExcelFile, new_wb: Workbook, proje
                     ws[cell_range].alignment = Alignment(horizontal='center', vertical='center')
 
                 # 插入圖塊
-                start_col = 'B'  # 矩形開始的列
+                
                 
 
 
