@@ -11,9 +11,9 @@ import argparse
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import filedialog, messagebox
-from openpyxl.styles import PatternFill, Border, Side
-from openpyxl.utils import get_column_letter
 import traceback
+import sys
+from openpyxl.styles import numbers
 
 # Configuration
 INPUT_FILE = ''
@@ -35,6 +35,16 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 # 設置日誌
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def print_error_with_line(e):
+    exc_type, exc_obj, exc_tb = sys.exc_info()
+    fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+    print(f"錯誤類型: {exc_type.__name__}")
+    print(f"文件名: {fname}")
+    print(f"行號: {exc_tb.tb_lineno}")
+    print(f"錯誤訊息: {str(e)}")
+    print("\n完整的錯誤追蹤:")
+    traceback.print_exc()
 
 class Application(tk.Tk):
     def __init__(self):
@@ -65,6 +75,15 @@ class Application(tk.Tk):
             return None, None
 
         return INPUT_FILE, OUTPUT_FILE
+    def print_error_with_line(e):
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        print(f"錯誤類型: {exc_type.__name__}")
+        print(f"文件名: {fname}")
+        print(f"行號: {exc_tb.tb_lineno}")
+        print(f"錯誤訊息: {str(e)}")
+        print("\n完整的錯誤追蹤:")
+        traceback.print_exc()
 
 
     def process_files(self, INPUT_FILE, OUTPUT_FILE):
@@ -81,10 +100,10 @@ class Application(tk.Tk):
             new_wb.save(OUTPUT_FILE)
             messagebox.showinfo("成功", f"成功創建 {OUTPUT_FILE}")
         except Exception as e:
-            error_msg = f"發生錯誤:\n{traceback.format_exc()}"
-            print(error_msg)  # 輸出到終端
+            error_msg = f"發生錯誤: {e}"
+            print_error_with_line(e)  # 在終端機輸出詳細錯誤信息
             logging.error(error_msg)  # 記錄到日誌
-            messagebox.showerror("錯誤", f"發生錯誤: {str(e)}\n\n詳細信息已輸出到終端")
+            messagebox.showerror("錯誤", error_msg)  # GUI顯示
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Process Excel file for geological data.')
@@ -158,6 +177,7 @@ def merge_cells(ws, start_row: int):
         (start_row+7, 7, start_row+7, 8),
         (start_row+7, 9, start_row+7, 11),
         (start_row+7,12,start_row+7,13),
+        
         (start_row+7,17,start_row+7,18),
         (start_row+7,21,start_row+7,24),
         (start_row+8,1,start_row+8,3),
@@ -168,7 +188,6 @@ def merge_cells(ws, start_row: int):
         (start_row+8,21,start_row+8,24),
     ]
     for merge in merge_cells_instructions:
-
         ws.merge_cells(start_row=merge[0], start_column=merge[1], end_row=merge[2], end_column=merge[3])
 
 def insert_image(ws, start_row: int):
@@ -292,222 +311,371 @@ def add_text_and_styles(ws, start_row: int):
         actual_cell.value = value
         set_cell_style(actual_cell)
 
-
 def set_borders(ws, start_row: int):
-    # Define border styles
-    medium = Side(style='medium')
-    thin = Side(style='thin')
-    
-    medium_border = Border(left=medium, right=medium, top=medium, bottom=medium)
-    thin_border = Border(left=thin, right=thin, top=thin, bottom=thin)
-    left_medium_border = Border(left=medium)
-    right_medium_border = Border(right=medium)
-    bottom_medium_border = Border(bottom=medium)
-    top_medium_border = Border(top=medium)
-    right_thin_border = Border(right=thin)
-    
     for i in range(start_row, start_row + 46, 46):
-        end_row = i + 46
-        
-        # Apply borders to the entire range
-        for row in ws.iter_rows(min_row=i+8, max_row=end_row, min_col=1, max_col=24):
+    # 設置邊框邏輯
+        for col in range(1, 25):
+            ws.cell(row=i + 8, column=col).border = Border(bottom=MEDIUM_BORDER)
+            ws.cell(row=i + 46, column=col).border = Border(top=MEDIUM_BORDER)
+
+        for col in range(2, 24):
+            for row in range(i + 17, i + 47):
+                ws.cell(row=row, column=col).border = Border(right=THIN_BORDER)
+
+        for row in range(i + 9, i + 46):
+            ws.cell(row=row, column=1).border = Border(left=MEDIUM_BORDER)
+            ws.cell(row=row, column=24).border = Border(right=MEDIUM_BORDER)
+
+        for row in ws.iter_rows(i + 16, i + 16, 3, 23):
             for cell in row:
-                if cell.row == i+8:
-                    cell.border = bottom_medium_border
-                elif cell.row == end_row:
-                    cell.border = top_medium_border
-                elif cell.column == 1:
-                    cell.border = left_medium_border
-                elif cell.column == 24:
-                    cell.border = right_medium_border
-                elif i+16 <= cell.row < end_row and cell.column > 1:
-                    cell.border = right_thin_border
-        
-        # Special cases
-        # ws.merge_cells(start_row=i+16, start_column=3, end_row=i+16, end_column=23)
-        # ws[f'C{i+16}'].border = Border(top=thin, left=thin)
-        
-        for row in range(i+15, end_row):
-            ws.cell(row=row, column=2).border = thin_border
-        
-        ws[f'A{i+15}'].border = Border(bottom=thin, left=medium)
-        ws[f'X{i+15}'].border = Border(bottom=thin, right=medium)
-        ws[f'X{i+16}'].border = Border(right=medium, left=thin)
-        
-        for row in range(i+9, i+16):
-            for col in range(2, 24):
-                ws.cell(row=row, column=col).border = right_thin_border
-        
-        for col in range(3, 24):
-            ws.cell(row=i+15, column=col).border = Border(left=thin, right=thin, bottom=thin)
-        
-        for col in range(5, 9):
-            ws.cell(row=i+13, column=col).border = Border(bottom=thin, right=thin, left=thin)
-        
-        for col in range(11, 15):
-            ws.cell(row=i+12, column=col).border = Border(top=thin, right=thin, left=thin)
-        
-        for col in range(22, 24):
-            ws.cell(row=i+14, column=col).border = Border(top=thin, right=thin, left=thin)
+                cell.border = Border(top=THIN_BORDER, left=THIN_BORDER)
 
-def get_column_width(worksheet, col_letter):
-    """獲取指定列的寬度"""
-    return worksheet.Columns[col_letter].Width
+        for row in ws.iter_rows(i + 15, i + 47, 2, 2):
+            for cell in row:
+                cell.border = Border(bottom=THIN_BORDER, top=THIN_BORDER, right=THIN_BORDER, left=THIN_BORDER)
 
-def get_row_height(worksheet, row):
-    """獲取指定行的高度"""
-    return worksheet.Rows[row].Height
+        ws[f'A{i + 15}'].border = Border(bottom=THIN_BORDER, left=MEDIUM_BORDER)
+        ws[f'X{i + 15}'].border = Border(bottom=THIN_BORDER, right=MEDIUM_BORDER)
+        ws[f'X{i + 16}'].border = Border(right=MEDIUM_BORDER,left=THIN_BORDER)
+
+        for row in ws.iter_rows(i + 9, i + 15, 2, 23):
+            for cell in row:
+                cell.border = Border(right=THIN_BORDER)
+
+        for row in ws.iter_rows(i + 15, i + 15, 3, 23):
+            for cell in row:
+                cell.border = Border(left=THIN_BORDER, right=THIN_BORDER, bottom=THIN_BORDER)
+
+        for row in ws.iter_rows(i + 10, i + 15, 2, 23):
+            for cell in row:
+                cell.border = Border(right=THIN_BORDER)
+
+        for row in ws.iter_rows(i + 13, i + 13, 5, 8):
+            for cell in row:
+                cell.border = Border(bottom=THIN_BORDER, right=THIN_BORDER, left=THIN_BORDER)
+
+        for row in ws.iter_rows(i + 12, i + 12, 11, 14):
+            for cell in row:
+                cell.border = Border(top=THIN_BORDER, right=THIN_BORDER, left=THIN_BORDER)
+
+        for row in ws.iter_rows(i + 14, i + 14, 22, 23):
+            for cell in row:
+                cell.border = Border(top=THIN_BORDER, right=THIN_BORDER, left=THIN_BORDER)
 
 def setup_worksheet(ws, start_row: int, project_name: str):
     merge_cells(ws, start_row)
-    # insert_image(ws, start_row)
+    insert_image(ws, start_row)
     add_text_and_styles(ws, start_row)
     set_borders(ws, start_row)
     adjust_column_width(ws)
 
 def process_worksheet(sheet_name: str, xl: pd.ExcelFile, new_wb: Workbook, project_name: str):
-    # 讀取Excel數據並轉換為DataFrame
     df = xl.parse(sheet_name)
-    
-    # 提取各個欄位的數據
     Layer = df.iloc[:, 20][4:].dropna().tolist()
     hatch_num = df.iloc[:, 21][4:].dropna().tolist()
     sample_num = df.iloc[:, 1][4:].dropna().tolist()
-    sample_depth = df.iloc[:, 0][4:].dropna().tolist()
-    Classi_fication = df.iloc[:, 13][5:].dropna().tolist()
+    sample_depth = df.iloc[:, 0][4:].dropna().tolist() 
     N_value = df.iloc[:, 5][4:].dropna().tolist()
     N1_value = df.iloc[:, 2][4:].tolist()
     N2_value = df.iloc[:, 3][4:].tolist()
     N3_value = df.iloc[:, 4][4:].tolist()
-    
-    # 其他需要的數據欄位
-    Gravel = df.iloc[:, 9][4:].dropna().tolist()
-    Sand = df.iloc[:, 10][4:].dropna().tolist()
-    Silt = df.iloc[:, 11][4:].dropna().tolist()
-    Clay = df.iloc[:, 12][4:].dropna().tolist()
-    Water_content = df.iloc[:, 14][4:].dropna().tolist()
-    Gs = df.iloc[:, 15][4:].dropna().tolist()
-    Density = df.iloc[:, 16][4:].dropna().tolist()
-    Void_ratio = df.iloc[:, 17][4:].dropna().tolist()
-    Liquid_limit = df.iloc[:, 18][4:].dropna().tolist()
-    Plastic_limit = df.iloc[:, 19][4:].dropna().tolist()
-
-    # 設置新的工作表
+    Classification = df.iloc[:, 13][4:].tolist()
+    Gravel = df.iloc[:, 9][4:].tolist() #有問題
+    Sand = df.iloc[:, 10][4:].tolist() #有問題
+    Silt = df.iloc[:, 11][4:].tolist() #有問題
+    Clay = df.iloc[:, 12][4:].tolist() #有問題
+    Water_content = df.iloc[:, 14][4:].tolist() #有問題
+    Specific_gravity = df.iloc[:, 15][4:].tolist() #有問題
+    Density = df.iloc[:, 16][4:].tolist() #有問題
+    Void_ratio = df.iloc[:, 17][4:].tolist() #有問題
+    Liquid_limit = df.iloc[:, 18][4:].tolist() #有問題
+    Plastic_index = df.iloc[:, 19][4:].tolist() #有問題
     ws = new_wb[sheet_name]
+<<<<<<<< HEAD:Excel_output.py
+    classi = df.iloc[:, 13][4:].tolist()
+========
 
-    # 計算頁數
+    def ensure_list(value):
+        if isinstance(value, (int, float)):
+            return [value]
+        return value if isinstance(value, list) else list(value)
+
+    Layer = ensure_list(Layer)
+    hatch_num = ensure_list(hatch_num)
+    sample_num = ensure_list(sample_num)
+    sample_depth = ensure_list(sample_depth)
+    N_value = ensure_list(N_value)
+    N1_value = ensure_list(N1_value)
+    N2_value = ensure_list(N2_value)
+    N3_value = ensure_list(N3_value)
+    Classification = ensure_list(Classification)
+    Gravel = ensure_list(Gravel)
+    Sand = ensure_list(Sand)
+    Silt = ensure_list(Silt)
+    Clay = ensure_list(Clay)
+    Water_content = ensure_list(Water_content)
+    Specific_gravity = ensure_list(Specific_gravity)
+    Density = ensure_list(Density)
+    Void_ratio = ensure_list(Void_ratio)
+    Liquid_limit = ensure_list(Liquid_limit)
+    Plastic_index = ensure_list(Plastic_index)
+    print('garvel',Gravel)
+
+    def format_value(value, decimals=2):
+        try:
+            return f"{float(value):.{decimals}f}"
+        except ValueError:
+            return value  # Or handle the case differently if necessary
+
+    # Example usage:
+    decimals = 2 # Set your desired number of decimal places here
+
+    Classification = [format_value(x, decimals) for x in Classification]
+    Gravel = [format_value(x, 1) for x in Gravel]
+    print('Gravel',Gravel)
+    Sand = [format_value(x, 1) for x in Sand]
+    Silt = [format_value(x, 1) for x in Silt]
+    Clay = [format_value(x, 1) for x in Clay]
+    Water_content = [format_value(x, 1) for x in Water_content]
+    Specific_gravity = [format_value(x, decimals) for x in Specific_gravity]
+    Density = [format_value(x, decimals) for x in Density]
+    Void_ratio = [format_value(x, decimals) for x in Void_ratio]
+    Liquid_limit = [format_value(x, 1) for x in Liquid_limit]
+    Plastic_index = [format_value(x, 1) for x in Plastic_index]
+
+
+>>>>>>>> 8e9b958a1883dd863d67bfee36ae28fabb1592f9:singol-hole.py
     page = math.ceil(max(Layer) / 15)
 
-    # 開始頁面設置和數據插入
     for i in range(page):
-        # 設置頁面基本信息
-        setup_worksheet(ws, i * 46 + 1, project_name)
-        
-        # 設定項目名稱
-        project_name_cell = ws[f'D{i * 46 + 6}']
-        project_name_cell.value = project_name
-        project_name_cell.font = Font(name='Times New Roman', size=12, bold=True)
-        project_name_cell.alignment = Alignment(horizontal='left', vertical='center')
+            setup_worksheet(ws, i * 46 + 1, project_name)
 
-        # 設定工作表名稱
-        sheet_name_cell = ws[f'D{i * 46 + 8}']
-        sheet_name_cell.value = sheet_name
-        sheet_name_cell.font = Font(name='Times New Roman', size=12, bold=False)
-        sheet_name_cell.alignment = Alignment(horizontal='left', vertical='center')
-
-        # 頁碼
-        page_num = str(i + 1)
-        page_cell = ws[f'U{i * 46 + 8}']
-        page_cell.value = f'第{page_num}頁'
-        page_cell.font = Font(name='Times New Roman', size=12, bold=False)
-        page_cell.alignment = Alignment(horizontal='left', vertical='center')
-
-        # 確保Layer和hatch_num為列表格式
-        if isinstance(Layer, (int, float)):
-            Layer = [Layer]
-        if isinstance(hatch_num, (int, float)):
-            hatch_num = [hatch_num]
-
-        # 插入分層深度和其他數據
-        for Layer_depth, hatch in zip(Layer, hatch_num):
-            # 層深度四捨五入並處理
-            Layer_depth = round(Layer_depth, 2)
-            if Layer_depth < 0.5:
-                Layer_depth = 0.5
-            y1 = round(Layer_depth / 0.5)
-            y2 = (y1 / 30)
-            y2 = math.floor(y2) if y1 % 30 != 0 else y2 - 1
-            insert_position = int(y1 + (y2 + 1) * 16)
+            # Set project name in the specific cell
+            project_name_cell = ws[f'D{i * 46 + 6}']
+            project_name_cell.value = project_name
+            project_name_cell.font = Font(name='Times New Roman', size=12, bold=True)
+            project_name_cell.alignment = Alignment(horizontal='left', vertical='center')
             
-            # 插入層深度
-            Layer_depth_cell = ws[f'A{insert_position}']
-            Layer_depth_cell.value = Layer_depth
-            Layer_depth_cell.font = Font(name='Times New Roman', size=12, bold=False)
-            Layer_depth_cell.alignment = Alignment(horizontal='center', vertical='center')
+            # Set sheet name in the specific cell
+            sheet_name_cell = ws[f'D{i * 46 + 8}']
+            sheet_name_cell.value = sheet_name
+            sheet_name_cell.font = Font(name='Times New Roman', size=12, bold=False)
+            sheet_name_cell.alignment = Alignment(horizontal='left', vertical='center')
+            
 
-            # 處理其他變量並插入資料
-            for sample_depthes, sample_nums, N, N1, N2, N3, classi_fiction, G, S, M, C, Wn, gs, density, void_ratio, liquid_limit, plastic_limit in zip(sample_depth, sample_num, N_value, N1_value, N2_value, N3_value, Classi_fication, Gravel, Sand, Silt, Clay, Water_content, Gs, Density, Void_ratio, Liquid_limit, Plastic_limit):
-                
-                # 處理樣本深度
+            # Page number
+
+            page_num = str(i + 1)
+            page_cell = ws[f'U{i * 46 + 8}']
+            page_cell.value = '第'+page_num+'頁'
+            page_cell.font = Font(name='Times New Roman', size=12, bold=False)
+            page_cell.alignment = Alignment(horizontal='left', vertical='center')
+            
+
+            for Layer_depth  in Layer:
+                # Layer depth
+                Layer_depth = round(Layer_depth, 1)
+                if Layer_depth<0.5:
+                    Layer_depth = 0.5
+                y1=round(Layer_depth/0.5)
+
+                y2=(y1/30)
+                if y1%30==0:
+                    y2=y2-1
+                else:
+                    y2=math.floor(y2)
+
+                insert_position = int(y1+(y2+1)*16)
+                # Layer_depth_cell = ws[f'A{insert_position}']
+                # Layer_depth_cell.value = Layer_depth
+                # Layer_depth_cell.font = Font(name='Times New Roman', size=12, bold=False)
+                # Layer_depth_cell.alignment = Alignment(horizontal='center', vertical='center')
+
+            for sample_depthes,sample_nums,N,N1,N2,N3,Classi,Gravel,Sand,Silt,Clay,Water_content,Specific_gravity,Density,Void_ratio,Liquid_limit,Plastic_index in zip(sample_depth, sample_num, N_value, N1_value, N2_value, N3_value,Classification,Gravel,Sand,Silt,Clay,Water_content,Specific_gravity,Density,Void_ratio,Liquid_limit,Plastic_index):
+                # Sample depth
+                # Check contents and types of all variables
+                # for var_name in [sample_depth, sample_num, N_value, N1_value, N2_value, N3_value, Classification, Gravel, Sand, Silt, Clay, Water_content, Specific_gravity, Density, Void_ratio, Liquid_limit, Plastic_index]:
+
                 sample_depthes = round(sample_depthes, 1)
-                if sample_depthes < 0.5:
+                if sample_depthes<0.5:
                     sample_depthes = 0.5
-                y1 = round(sample_depthes / 0.5)
-                y2 = (y1 / 30)
-                y2 = math.floor(y2) if y1 % 30 != 0 else y2 - 1
-                insert_position = int(y1 + (y2 + 1) * 16)
+                y1=round(sample_depthes/0.5)
 
-                # 插入樣本號碼
+                y2=(y1/30)
+                if y1%30==0:
+                    y2=y2-1
+                else:
+                    y2=math.floor(y2)
+                insert_position = int(y1+(y2+1)*16)    
                 sample_num_cell = ws[f'D{insert_position}']
                 sample_num_cell.value = sample_nums
                 sample_num_cell.font = Font(name='Times New Roman', size=12, bold=False)
                 sample_num_cell.alignment = Alignment(horizontal='center', vertical='center')
 
-                # 插入分類資料
-                classi_fiction_cell = ws[f'J{insert_position}']
-                classi_fiction_cell.value = classi_fiction
-                classi_fiction_cell.font = Font(name='Times New Roman', size=12, bold=False)
-                classi_fiction_cell.alignment = Alignment(horizontal='center', vertical='center')
-
-                # 插入 N、N1、N2、N3 值
-                ws[f'H{insert_position}'].value = N
-                ws[f'H{insert_position}'].font = Font(name='Times New Roman', size=12, bold=False)
-                ws[f'H{insert_position}'].alignment = Alignment(horizontal='center', vertical='center')
-
-                ws[f'E{insert_position}'].value = N1
-                ws[f'E{insert_position}'].font = Font(name='Times New Roman', size=12, bold=False)
-                ws[f'E{insert_position}'].alignment = Alignment(horizontal='center', vertical='center')
-
-                ws[f'F{insert_position}'].value = N2
-                ws[f'F{insert_position}'].font = Font(name='Times New Roman', size=12, bold=False)
-                ws[f'F{insert_position}'].alignment = Alignment(horizontal='center', vertical='center')
-
-                ws[f'G{insert_position}'].value = N3
-                ws[f'G{insert_position}'].font = Font(name='Times New Roman', size=12, bold=False)
-                ws[f'G{insert_position}'].alignment = Alignment(horizontal='center', vertical='center')
-
-                # 插入 Gravel, Sand, Silt, Clay, Water_content, Gs, Density, Void_ratio, Liquid_limit, Plastic_limit
-                ws[f'K{insert_position}'].value = G
-                ws[f'L{insert_position}'].value = S
-                ws[f'M{insert_position}'].value = M
-                ws[f'N{insert_position}'].value = C
-                ws[f'O{insert_position}'].value = Wn
-                ws[f'P{insert_position}'].value = gs
-                ws[f'Q{insert_position}'].value = density
-                ws[f'R{insert_position}'].value = void_ratio
-                ws[f'S{insert_position}'].value = liquid_limit
-                ws[f'T{insert_position}'].value = plastic_limit
-
-                # 設置單元格格式
-                for cell_range in [f'K{insert_position}', f'L{insert_position}', f'M{insert_position}', f'N{insert_position}', f'O{insert_position}', f'P{insert_position}', f'Q{insert_position}', f'R{insert_position}', f'S{insert_position}', f'T{insert_position}']:
-                    ws[cell_range].font = Font(name='Times New Roman', size=12, bold=False)
-                    ws[cell_range].alignment = Alignment(horizontal='center', vertical='center')
+                # Sample depth
+                sample_depth_cell = ws[f'A{insert_position}']
+                sample_depth_cell.value = sample_depthes
+                sample_depth_cell.font = Font(name='Times New Roman', size=12, bold=False)
+                sample_depth_cell.alignment = Alignment(horizontal='center', vertical='center')
 
 
+                # N value
+                N_cell = ws[f'H{insert_position}']
+                N_cell.value = N
+                N_cell.font = Font(name='Times New Roman', size=12, bold=False)
+                N_cell.alignment = Alignment(horizontal='center', vertical='center')
+                    
+
+                # N1 value
+                N1_cell = ws[f'E{insert_position}']
+                N1_cell.value = N1
+                N1_cell.font = Font(name='Times New Roman', size=12, bold=False)
+                N1_cell.alignment = Alignment(horizontal='center', vertical='center')
+
+                # N2 value
+                N2_cell = ws[f'F{insert_position}']
+                N2_cell.value = N2
+                N2_cell.font = Font(name='Times New Roman', size=12, bold=False)
+                N2_cell.alignment = Alignment(horizontal='center', vertical='center')
+
+                # N3 value
+                N3_cell = ws[f'G{insert_position}']
+                N3_cell.value = N3
+                N3_cell.font = Font(name='Times New Roman', size=12, bold=False)
+                N3_cell.alignment = Alignment(horizontal='center', vertical='center')
+
+<<<<<<<< HEAD:Excel_output.py
+                #classi- fication
+                Class_cell=ws[f'N{insert_position}']
+                Class_cell.value=classi
+                Class_cell.font=Font(name='Times New Roman', size=12, bold=False)
+                Class_cell.alignment=Alignment(horizontal='center', vertical='center')
+
+                
+========
+                # Classification 待修正
+                # Classi_str = ', '.join(Classi)
+                # Classification_cell = ws[f'L{insert_position}']
+                # Classification_cell.value = Classi_str
+                # Classification_cell.font = Font(name='Times New Roman', size=12, bold=False)
+                # Classification_cell.alignment = Alignment(horizontal='center', vertical='center')
+                # print('Classi',Classi)
+                for i in enumerate(Classi):
+                    Classification_cell = ws[f'J{insert_position}']
+                    Classification_cell.value = Classi
+                    Classification_cell.font = Font(name='Times New Roman', size=12, bold=False)
+                    Classification_cell.alignment = Alignment(horizontal='center', vertical='center')
+
+                # Gravel
+                # Gravel_cell = ws[f'M{insert_position}']
+                # Gravel_cell.value = Gravel
+                # Gravel_cell.font = Font(name='Times New Roman', size=12, bold=False)
+                # Gravel_cell.alignment = Alignment(horizontal='center', vertical='center')
+                # print(Gravel)
+                for i in Gravel:
+                    Gravel_cell = ws[f'K{insert_position}']
+                    Gravel_cell.value = Gravel
+                    Gravel_cell.font = Font(name='Times New Roman', size=12, bold=False)
+                    Gravel_cell.alignment = Alignment(horizontal='center', vertical='center')
+                    Gravel_cell.number_format = numbers.FORMAT_NUMBER_00
+                    print('Gravel', Gravel)
+
+                # Sand
+                for i in Sand:
+                    Sand_cell = ws[f'L{insert_position}']
+                    Sand_cell.value = Sand
+                    Sand_cell.font = Font(name='Times New Roman', size=12, bold=False)
+                    Sand_cell.alignment = Alignment(horizontal='center', vertical='center')
+                    Sand_cell.number_format = numbers.FORMAT_NUMBER_00
+                    print('Sand',Sand)
+
+
+                # Silt
+                for i in Silt:
+                    Silt_cell = ws[f'M{insert_position}']
+                    Silt_cell.value = Silt
+                    Silt_cell.font = Font(name='Times New Roman', size=12, bold=False)
+                    Silt_cell.alignment = Alignment(horizontal='center', vertical='center')
+                    Silt_cell.number_format = numbers.FORMAT_NUMBER_00
+                    print('Silt',Silt)
+                
+                # Clay
+                for i in Clay:
+                    Clay_cell = ws[f'N{insert_position}']
+                    Clay_cell.value = Clay
+                    Clay_cell.font = Font(name='Times New Roman', size=12, bold=False)
+                    Clay_cell.alignment = Alignment(horizontal='center', vertical='center')
+                    Clay_cell.number_format = numbers.FORMAT_NUMBER_00
+                    print('Clay',Clay)
+
+                # Water content
+                for i in Water_content:
+                    Water_content_cell = ws[f'O{insert_position}']
+                    Water_content_cell.value = Water_content
+                    Water_content_cell.font = Font(name='Times New Roman', size=12, bold=False)
+                    Water_content_cell.alignment = Alignment(horizontal='center', vertical='center')
+                    Water_content_cell.number_format = numbers.FORMAT_NUMBER_00
+                    print('Water_content',Water_content)
+
+                # Specific gravity
+                for i in Specific_gravity:
+                    Specific_gravity_cell = ws[f'P{insert_position}']
+                    Specific_gravity_cell.value = Specific_gravity
+                    Specific_gravity_cell.font = Font(name='Times New Roman', size=12, bold=False)
+                    Specific_gravity_cell.alignment = Alignment(horizontal='center', vertical='center')
+                    Specific_gravity_cell.number_format = numbers.FORMAT_NUMBER_00
+                    print('Specific_gravity',Specific_gravity)
+
+                # Density
+                for i in Density:
+                    Density_cell = ws[f'Q{insert_position}']
+                    Density_cell.value = Density
+                    Density_cell.font = Font(name='Times New Roman', size=12, bold=False)
+                    Density_cell.alignment = Alignment(horizontal='center', vertical='center')
+                    Density_cell.number_format = numbers.FORMAT_NUMBER_00
+                    print('Density',Density)
+
+                # Void ratio
+                for i in Void_ratio:
+                    Void_ratio_cell = ws[f'R{insert_position}']
+                    Void_ratio_cell.value = Void_ratio
+                    Void_ratio_cell.font = Font(name='Times New Roman', size=12, bold=False)
+                    Void_ratio_cell.alignment = Alignment(horizontal='center', vertical='center')
+                    Void_ratio_cell.number_format = numbers.FORMAT_NUMBER_00
+                    print('Void_ratio',Void_ratio)
+
+                # Liquid limit
+                for i in Liquid_limit:
+                    Liquid_limit_cell = ws[f'S{insert_position}']
+                    Liquid_limit_cell.value = Liquid_limit
+                    Liquid_limit_cell.font = Font(name='Times New Roman', size=12, bold=False)
+                    Liquid_limit_cell.alignment = Alignment(horizontal='center', vertical='center')
+                    Liquid_limit_cell.number_format = numbers.FORMAT_NUMBER_00
+                    print('Liquid_limit',Liquid_limit)
+
+                # Plastic insex
+                for i in Plastic_index:
+                    Plastic_index_cell = ws[f'T{insert_position}']
+                    Plastic_index_cell.value = Plastic_index
+                    Plastic_index_cell.font = Font(name='Times New Roman', size=12, bold=False)
+                    Plastic_index_cell.alignment = Alignment(horizontal='center', vertical='center')
+                    Plastic_index_cell.number_format = numbers.FORMAT_NUMBER_00
+                    print('Plastic_index',Plastic_index)
+
+>>>>>>>> 8e9b958a1883dd863d67bfee36ae28fabb1592f9:singol-hole.py
 
 
 
 
+                
+
+
+
+                
+
+                
+
+    
 
 def main():
     app=Application()
