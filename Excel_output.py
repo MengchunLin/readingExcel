@@ -17,7 +17,7 @@ import traceback
 import math
 import win32com.client as win32
 from openpyxl.utils import get_column_letter
-
+import xlwings as xw
 # Configuration
 INPUT_FILE = ''
 OUTPUT_FILE = ''
@@ -364,12 +364,6 @@ def setup_worksheet(ws, start_row: int, project_name: str):
     adjust_column_width(ws)
 
 def get_column_width(worksheet, col):
-    """獲取指定列的寬度
-    
-    Args:
-        worksheet: 工作表物件
-        col: 可以是數字(1代表A列)或字母('A','B'等)
-    """
     # 如果輸入是字母，直接使用
     if isinstance(col, str):
         col_letter = col.upper()
@@ -473,38 +467,15 @@ def process_worksheet(sheet_name: str, xl: pd.ExcelFile, new_wb: Workbook, proje
 
             # 根據 hatch 數值生成對應的 WMF 文件名
             file_name = f"{hatch}.wmf"
-            print(file_name)
-            # 定義矩形的列和行範圍
-            start_col = 'C'  # 矩形開始的列
-            start_row = insert_position   # 矩形開始的行
-            end_row = previous_insert_position     # 矩形結束的行
-            print(start_row, end_row)
-            # 獲取指定列的寬度和指定行的高度
-            col_width = get_column_width(ws, start_col)
-            row_height_start = get_row_height(ws, start_row)
-            row_height_end = get_row_height(ws, end_row)
-            # 計算矩形的左上角和右下角的坐標
-            left = ws.Columns[start_col].Left  # 矩形左邊界
-            top = ws.Rows[start_row].Top        # 矩形上邊界
-            height = row_height_end * (end_row - start_row + 1)  # 矩形的高度（從 B5 到 B10）
-            width = col_width 
-            # 插入矩形
-            shape = ws.Shapes.AddShape(1, left, top, width, height)
+            if not os.path.isfile(file_name):
+                print(f"File '{file_name}' not found. Skipping...")
+                continue  # 若文件不存在，跳過此循環
 
-            # 設定矩形填滿為圖片紋理
-            if file_name:
-                # 設置填滿為圖片
-                shape.Fill.UserPicture(file_name)
-                
-                # 設置填滿為圖片紋理
-                shape.Fill.TextureTile = True
-                
-                # 調整刻度
-                shape.Fill.TextureOffsetX = 0.05  # X 刻度: 10%
-                shape.Fill.TextureOffsetY = 0.05  # Y 刻度: 10%
-                shape.Fill.TextureHorizontalScale = 0.05  # X 刻度百分比: 10%
-                shape.Fill.TextureVerticalScale = 0.05  # Y 刻度百分比: 10%
-            # 處理其他變量並插入資料
+            print(f"File name: {file_name}")
+            # 打開目前編輯的檔案
+            img = Image(file_name)
+            ws.add_image(img, f'B{insert_position - 1}')
+            
             for sample_depthes, sample_nums, N, N1, N2, N3, classi_fiction, G, S, M, C, Wn, gs, density, void_ratio, liquid_limit, plastic_limit in zip(sample_depth, sample_num, N_value, N1_value, N2_value, N3_value, Classi_fication, Gravel, Sand, Silt, Clay, Water_content, Gs, Density, Void_ratio, Liquid_limit, Plastic_limit):
                 
                 # 處理樣本深度
@@ -565,14 +536,6 @@ def process_worksheet(sheet_name: str, xl: pd.ExcelFile, new_wb: Workbook, proje
 
                 # 插入圖塊
                 
-                
-
-
-
-
-
-
-
 def main():
     app=Application()
     app.mainloop()

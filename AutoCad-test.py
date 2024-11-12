@@ -10,6 +10,9 @@ from collections import Counter
 import openpyxl
 import os
 import logging
+import comtypes.client
+
+
 
 logging.basicConfig(filename='error_log.log', level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
 
