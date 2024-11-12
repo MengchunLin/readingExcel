@@ -132,7 +132,7 @@ wincad  = win32com.client.Dispatch("AutoCAD.Application")
 # wincad  = Autocad(create_if_not_exists=True)
 
 doc = wincad.ActiveDocument
-msp = doc.ModelSpace
+# msp = doc.ModelSpace
 
 doc.SetVariable("INSUNITS", 6)
 
