@@ -5,10 +5,6 @@ from tkinter import filedialog, simpledialog
 import json
 
 created_file = []
-<<<<<<< HEAD
-thickness_threshold = 5
-=======
->>>>>>> cbf22592d51190c22db73507b2d9f3bcfa972b1b
 # 選擇檔案
 def select_file():
     root = tk.Tk()
@@ -137,21 +133,11 @@ def process_file(file, thickness_threshold):
     df_copy['I_c'] = df_copy['I_c'].interpolate(method='linear')
     df_copy['Soil Type'] = df_copy['Soil Type'].ffill()
 
-<<<<<<< HEAD
-    # 分類土壤類型
-    # Soil_Type_5 = df_copy['Ic'].apply(classify_soil_type)
-    # df_copy['Soil Type 5 type'] = Soil_Type_5
-    # df_copy['Mark1'] = ''
-
-    Soil_Type=df_copy['Soil Type']
-
-=======
     # # 分類土壤類型
     # Soil_Type_5 = df_copy['Ic'].apply(classify_soil_type)
     # df_copy['Soil Type 5 type'] = Soil_Type_5
     # df_copy['Mark1'] = ''
     Soil_Type = df_copy['Soil Type']
->>>>>>> cbf22592d51190c22db73507b2d9f3bcfa972b1b
     # 計算層數、厚度和 Ic 平均值
     layers, thicknesses, ic_avgs = data_array(Soil_Type, df_copy['I_c'])
     result_df = pd.DataFrame({'Soil Type': layers, 'Thickness': thicknesses, 'Ic_avg': ic_avgs})
@@ -160,17 +146,10 @@ def process_file(file, thickness_threshold):
     result_array1 = merge_layer(result_df, 5)
 
     # 寫入第一次處理後的數據
-<<<<<<< HEAD
-    data_input1 = write_merged_data(result_array1)
-    df_copy['Changed_1'] = ''
-    df_copy['10cm combine'] = data_input1
-    
-=======
     df_copy['Mark1'] = ''
     data_input1 = write_merged_data(result_array1)
     df_copy['10cm'] = data_input1
     df_copy['Mark2'] = ''
->>>>>>> cbf22592d51190c22db73507b2d9f3bcfa972b1b
     result_array1 = merge_processed_data(result_array1)
     
     # 確保數據長度匹配
@@ -183,16 +162,9 @@ def process_file(file, thickness_threshold):
     mark_array = mark(Soil_Type, data_input1)
 
     # 標記第一次合併後的數據
-<<<<<<< HEAD
-    df_copy['Changed_1'] = mark_array
-
-    # 第二次合併（基於用戶輸入的厚度閾值）
-    df_copy['Changed_2'] =''
-=======
     df_copy['Mark1'] = mark_array
 
     # 第二次合併（基於用戶輸入的厚度閾值）
->>>>>>> cbf22592d51190c22db73507b2d9f3bcfa972b1b
     result_array2 = merge_layer(result_array1, thickness_threshold)
 
     # 寫入第二次處理後的數據
@@ -204,19 +176,11 @@ def process_file(file, thickness_threshold):
     elif len(data_input) < len(df_copy):
         data_input.extend([''] * (len(df_copy) - len(data_input)))  # 填充空值以匹配長度
 
-<<<<<<< HEAD
-    df_copy['Combined soil type'] = data_input
-
-    # 標記第二次合併後的數據
-    mark_array = mark(data_input1, data_input)
-    df_copy['Changed_2'] = mark_array  # 標記第二次合併的變化
-=======
     df_copy['合併後'] = data_input
 
     # 標記第二次合併後的數據
     mark_array = mark(data_input1, data_input)
     df_copy['Mark2'] = mark_array  # 標記第二次合併的變化
->>>>>>> cbf22592d51190c22db73507b2d9f3bcfa972b1b
 
     # 將處理後的資料存入新的 Excel 檔案
     processed_file = file.replace('.xlsx', '_processed.xlsx')

@@ -18,6 +18,11 @@ import math
 import win32com.client as win32
 from openpyxl.utils import get_column_letter
 import xlwings as xw
+import xlsxwriter
+from openpyxl import Workbook
+from openpyxl.drawing.image import Image
+from PIL import Image as PILImage  # 使用PIL來處理圖片裁剪
+import openpyxl.utils
 # Configuration
 INPUT_FILE = ''
 OUTPUT_FILE = ''
@@ -119,7 +124,7 @@ def create_new_workbook(sheet_names: List[str]) -> Workbook:
 
 def adjust_column_width(ws):
     column_widths = {
-        'A': 6.11, 'B': 1, 'C': 6, 'D': 8, 'E': 6, 'F': 6, 'G': 6, 'H': 6, 'I': 35,
+        'A': 6.11, 'B': 1, 'C': 3.8, 'D': 8, 'E': 6, 'F': 6, 'G': 6, 'H': 6, 'I': 35,
         'J': 12, 'K': 8, 'L': 8, 'M': 8, 'N': 8, 'O': 9, 'P': 9, 'Q': 9, 'R': 9,
         'S': 9, 'T': 9, 'U': 10, 'V': 9, 'W': 9, 'X': 12
     }
@@ -466,15 +471,37 @@ def process_worksheet(sheet_name: str, xl: pd.ExcelFile, new_wb: Workbook, proje
             Layer_depth_cell.alignment = Alignment(horizontal='center', vertical='center')
 
             # 根據 hatch 數值生成對應的 WMF 文件名
-            file_name = f"{hatch}.wmf"
+            file_name = f"{hatch}.wmf.png"
             if not os.path.isfile(file_name):
                 print(f"File '{file_name}' not found. Skipping...")
                 continue  # 若文件不存在，跳過此循環
 
             print(f"File name: {file_name}")
-            # 打開目前編輯的檔案
-            img = Image(file_name)
-            ws.add_image(img, f'B{insert_position - 1}')
+            # # 打開目前編輯的檔案
+            img = PILImage.open(file_name)
+            # 插入圖形
+
+            
+            # 裁切圖片
+            row = 10
+            col = 'C'
+            col_width = ws.column_dimensions[col].width  # C列的寬度
+            row_height = ws.row_dimensions[row].height  # 第10行的高度
+            col_width_pixels = col_width * 7  # C列的寬度（像素）
+            row_height_pixels = row_height  # 行高（像素）
+            # 3. 裁剪圖片
+            # 計算裁剪區域：左、上、右、下
+            # 假設圖片的解析度是72 DPI，將其轉換為像素
+            left = 0
+            upper = 0
+            right = col_width_pixels
+            lower = row_height_pixels
+
+            # 裁剪圖片
+            cropped_img = img.crop((left, upper, right, lower))
+            ws.add_image(cropped_img, f'C{insert_position - 1}')
+            print(f"Image added to C{insert_position - 1}")
+            
             
             for sample_depthes, sample_nums, N, N1, N2, N3, classi_fiction, G, S, M, C, Wn, gs, density, void_ratio, liquid_limit, plastic_limit in zip(sample_depth, sample_num, N_value, N1_value, N2_value, N3_value, Classi_fication, Gravel, Sand, Silt, Clay, Water_content, Gs, Density, Void_ratio, Liquid_limit, Plastic_limit):
                 
