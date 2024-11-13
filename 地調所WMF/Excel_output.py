@@ -472,15 +472,21 @@ def process_worksheet(sheet_name: str, xl: pd.ExcelFile, new_wb: Workbook, proje
 
             # 插入圖形-矩形
             # 計算矩形的左上角和右下角的坐標
-            left = ws.column_dimensions['C'].width
-            top = ws.row_dimensions[insert_position].height
-            height = ws.row_dimensions[insert_position + 2].height
-            width = ws.column_dimensions['C'].width
-            # 插入矩形
-            shape = ws.shapes.add_shape(1, left, top, width, height)
-            # 設置填滿為圖片
-            shape.fill.user_picture(LOGO_FILE)
-            
+            # left = ws.column_dimensions['C'].width
+            # top = ws.row_dimensions[insert_position].height
+            # height = ws.row_dimensions[insert_position + 2].height
+            # width = ws.column_dimensions['C'].width
+            # # 插入矩形
+            # shape = ws.shapes.add_shape(1, left, top, width, height)
+            # # 設置填滿為圖片
+            # shape.fill.user_picture(LOGO_FILE)
+            ################ edit#################
+            unit_height = 21
+            start_row = insert_position
+            import ollieFunction 
+            ollieFunction.insert_img(ws,start_row,'./地調所WMF/102.png', unit_height*5)
+           
+            ##################
             
             # 裁切圖片
             # row = 10
