@@ -36,7 +36,7 @@ MEDIUM_BORDER = Side(border_style='medium')
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-excel = win32.Dispatch("Excel.Application")
+
 
 
 # 配置和常量部分保持不變
@@ -116,7 +116,7 @@ def load_excel_file(filename: str) -> Tuple[pd.ExcelFile, List[str], str]:
 
 
 def create_new_workbook(sheet_names: List[str]) -> Workbook:
-    new_wb = excel.Workbooks.Add()
+    new_wb = Workbook()
     new_wb.remove(new_wb.active)
     for sheet_name in sheet_names:
         new_wb.create_sheet(title=sheet_name)
