@@ -1,6 +1,7 @@
 from PIL import Image as PILImage  # 使用PIL來處
 from openpyxl import Workbook
 from openpyxl.drawing.image import Image
+
 def insert_img(ws:Workbook,start_row:int,image_path, target_height):
     # 讀取圖片
     img = PILImage.open(image_path)
@@ -41,5 +42,3 @@ def insert_img(ws:Workbook,start_row:int,image_path, target_height):
     insert_img = Image('temp.png')
     ws.add_image(insert_img, f'C{start_row}')
 
-
-        

@@ -484,7 +484,7 @@ def process_worksheet(sheet_name: str, xl: pd.ExcelFile, new_wb: Workbook, proje
             unit_height = 21
             start_row = insert_position
             import ollieFunction 
-            ollieFunction.insert_img(ws,start_row,'./地調所WMF/102.png', unit_height*5)
+            ollieFunction.insert_img(ws,start_row,'./地調所WMF/png/102.png', unit_height*5)
            
             ##################
             
