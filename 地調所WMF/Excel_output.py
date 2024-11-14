@@ -124,7 +124,7 @@ def create_new_workbook(sheet_names: List[str]) -> Workbook:
 
 def adjust_column_width(ws):
     column_widths = {
-        'A': 6.11, 'B': 1, 'C': 6, 'D': 8, 'E': 6, 'F': 6, 'G': 6, 'H': 6, 'I': 35,
+        'A': 6.11, 'B': 1, 'C': 5.5, 'D': 8, 'E': 6, 'F': 6, 'G': 6, 'H': 6, 'I': 35,
         'J': 12, 'K': 8, 'L': 8, 'M': 8, 'N': 8, 'O': 9, 'P': 9, 'Q': 9, 'R': 9,
         'S': 9, 'T': 9, 'U': 10, 'V': 9, 'W': 9, 'X': 12
     }
@@ -332,10 +332,6 @@ def set_borders(ws, start_row: int):
                 elif i+16 <= cell.row < end_row and cell.column > 1:
                     cell.border = right_thin_border
         
-        # Special cases
-        # ws.merge_cells(start_row=i+16, start_column=3, end_row=i+16, end_column=23)
-        # ws[f'C{i+16}'].border = Border(top=thin, left=thin)
-        
         for row in range(i+15, end_row):
             ws.cell(row=row, column=2).border = thin_border
         
@@ -422,6 +418,8 @@ def process_worksheet(sheet_name: str, xl: pd.ExcelFile, new_wb: Workbook, proje
     # 計算頁數
     page = math.ceil(max(Layer) / 15)
 
+    insert_position_list = []
+
     # 開始頁面設置和數據插入
     for i in range(page):
         # 設置頁面基本信息
@@ -453,7 +451,7 @@ def process_worksheet(sheet_name: str, xl: pd.ExcelFile, new_wb: Workbook, proje
             hatch_num = [hatch_num]
         
         # 插入分層深度和其他數據
-        for Layer_depth, hatch in zip(Layer, hatch_num):
+        for Layer_depth in (Layer):
             # 處理層深度四捨五入
             Layer_depth = round(Layer_depth, 2)
             if Layer_depth < 0.5:
@@ -462,52 +460,23 @@ def process_worksheet(sheet_name: str, xl: pd.ExcelFile, new_wb: Workbook, proje
             y2 = (y1 / 30)
             y2 = math.floor(y2) if y1 % 30 != 0 else y2 - 1
             insert_position = int(y1 + (y2 + 1) * 16)
-            print(insert_position)
-            previous_insert_position = insert_position
-            # 插入層深度到單元格
+            insert_position_list.append(insert_position)
+            # print(insert_position)
             Layer_depth_cell = ws[f'A{insert_position}']
             Layer_depth_cell.value = Layer_depth
             Layer_depth_cell.font = Font(name='Times New Roman', size=12)
-            Layer_depth_cell.alignment = Alignment(horizontal='center', vertical='center')
+            # 插入層深度到單元格
+            # Layer_depth_cell = ws[f'A{insert_position}']
+            # Layer_depth_cell.value = Layer_depth
+            # Layer_depth_cell.font = Font(name='Times New Roman', size=12)
 
-            # 插入圖形-矩形
-            # 計算矩形的左上角和右下角的坐標
-            # left = ws.column_dimensions['C'].width
-            # top = ws.row_dimensions[insert_position].height
-            # height = ws.row_dimensions[insert_position + 2].height
-            # width = ws.column_dimensions['C'].width
-            # # 插入矩形
-            # shape = ws.shapes.add_shape(1, left, top, width, height)
-            # # 設置填滿為圖片
-            # shape.fill.user_picture(LOGO_FILE)
-            ################ edit#################
-            unit_height = 21
-            start_row = insert_position
-            import ollieFunction 
-            ollieFunction.insert_img(ws,start_row,'./地調所WMF/png/102.png', unit_height*5)
+            # unit_height = 21
+            # start_row = insert_position
+            # print('hatch:',hatch)
+            # import ollieFunction 
+            # ollieFunction.insert_img(ws,start_row,'./png/'f'{hatch}''.png', unit_height*5)
            
-            ##################
-            
-            # 裁切圖片
-            # row = 10
-            # col = 'C'
-            # col_width = ws.column_dimensions[col].width  # C列的寬度
-            # row_height = ws.row_dimensions[row].height  # 第10行的高度
-            # col_width_pixels = col_width   # C列的寬度（像素）
-            # row_height_pixels = row_height  # 行高（像素）
-            # # 3. 裁剪圖片
-            # # 計算裁剪區域：左、上、右、下
-            # # 假設圖片的解析度是72 DPI，將其轉換為像素
-            # left = 0
-            # upper = 0
-            # right = col_width_pixels
-            # lower = row_height_pixels
 
-            # # 裁剪圖片
-            # cropped_img = img.crop((left, upper, right, lower))
-            # ws.add_image(cropped_img, f'C{insert_position - 1}')
-            # print(f"Image added to C{insert_position - 1}")
-            
             
             for sample_depthes, sample_nums, N, N1, N2, N3, classi_fiction, G, S, M, C, Wn, gs, density, void_ratio, liquid_limit, plastic_limit in zip(sample_depth, sample_num, N_value, N1_value, N2_value, N3_value, Classi_fication, Gravel, Sand, Silt, Clay, Water_content, Gs, Density, Void_ratio, Liquid_limit, Plastic_limit):
                 
@@ -566,8 +535,23 @@ def process_worksheet(sheet_name: str, xl: pd.ExcelFile, new_wb: Workbook, proje
                 for cell_range in [f'K{insert_position}', f'L{insert_position}', f'M{insert_position}', f'N{insert_position}', f'O{insert_position}', f'P{insert_position}', f'Q{insert_position}', f'R{insert_position}', f'S{insert_position}', f'T{insert_position}']:
                     ws[cell_range].font = Font(name='Times New Roman', size=12, bold=False)
                     ws[cell_range].alignment = Alignment(horizontal='center', vertical='center')
+    print(hatch_num)
+    # 插入圖片
+    previous_insert_position = 0
+    end_row = 0
+    for insert_position, hatch in zip(insert_position_list, hatch_num):
+        unit_height = 21
+        start_row = insert_position
+        end_row = (start_row - previous_insert_position) * unit_height
+        print('hatch:', hatch)
 
-                # 插入圖塊
+        import ollieFunction 
+        # Corrected file path formatting
+        image_path = f'./png/{hatch}.png'
+        ollieFunction.insert_img(ws, start_row, image_path, end_row)
+        end_row = start_row
+
+                
                 
 def main():
     app=Application()

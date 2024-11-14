@@ -9,6 +9,7 @@ import pythoncom
 from collections import Counter
 import openpyxl
 import os
+import math
 
 file_path = ""
 Upper_depth = 5
@@ -199,6 +200,21 @@ for index, sheet_name in enumerate(sheet_names[1:], start=1):
     df = pd.read_excel(xl, sheet_name, header=None)
     Ground_EL= df.iloc[0,5]
     all_Ground_EL.append(Ground_EL)
+    # 報錯視窗
+    if math.isnan(Ground_EL):
+        # Create a Tkinter window to display the error message
+        root = tk.Tk()
+        root.title("錯誤視窗")
+        root.geometry("300x150")
+        
+        # Create and pack the label to display the message
+        tk.Label(root, text="Please enter Ground EL",font = ('Times New Roman',16 )).pack(padx=10, pady=15)
+         
+        # Create and pack the button to close the window
+        tk.Button(root, text="close",font=('Times New Roman',14), command=root.destroy).pack(pady=30)
+
+        # Run the Tkinter event loop to show the window
+        root.mainloop()
 #------------------------------------------------------------------------------------------------------------------------------------
     #位置distance
     N_2=df.iloc[1,1]
@@ -486,8 +502,16 @@ for i in example_list_int:
 #         print(sheet_name + ": " + str(all_lists[i-1]))  # 輸出 sheet_name 和相應的列表
 #         continue
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------
+print(depest)  # Check the value of depest
+if not math.isnan(depest):
+    ruler_bottom = round(depest - 1)
+else:
+    ruler_bottom = 0  # or another default value
+    # 報錯視窗
+    root = tk.Tk()
+    root.title('請填入高程Ground EL')
 
-ruler_bottom=round(depest-1)
+
 ruler_top=round(ruler_top+1)
 ruler_length = round((ruler_top-ruler_bottom))
 insertion_point = APoint(0, ruler_top)
