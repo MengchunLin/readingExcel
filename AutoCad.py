@@ -195,6 +195,7 @@ for index, sheet_name in enumerate(sheet_names[1:], start=1):
     E_1=0
     E_2=0
     num_lists+=1    
+    print('sheet_name:', sheet_name)
  #------------------------------------------------------------------------------------------------------------------------------------
     #孔頂高
     df = pd.read_excel(xl, sheet_name, header=None)
@@ -307,7 +308,9 @@ for index, sheet_name in enumerate(sheet_names[1:], start=1):
     
     Layer = df.iloc[:, 20]
     Layer=Layer[5:]
+    print('Layer:', Layer)
     Layer=Layer.dropna()
+    print('Layer:', Layer)
 
     depth = df.iloc[:, 0]
     depth=depth[5:]
@@ -329,7 +332,7 @@ for index, sheet_name in enumerate(sheet_names[1:], start=1):
     t=0
     # for index, sheet_name in enumerate(sheet_names):
     for layer ,spt ,depth in zip(Layer,spt_n,depth):
-        
+        print('layer:', layer)
         times=len(Layer)
         y2=Ground_EL-layer
         p1=APoint(distance*scale_factor_w,y1*scale_factor_h)
@@ -376,11 +379,6 @@ for index, sheet_name in enumerate(sheet_names[1:], start=1):
         text.Alignment=11  
         text.TextAlignmentPoint = insert_point
         nan_encountered = False
-
-        # Each hatch in a sheet has a unique number
-
-        
-
 
         t+=1
         if t==times:
@@ -502,7 +500,7 @@ for i in example_list_int:
 #         print(sheet_name + ": " + str(all_lists[i-1]))  # 輸出 sheet_name 和相應的列表
 #         continue
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------
-print(depest)  # Check the value of depest
+
 if not math.isnan(depest):
     ruler_bottom = round(depest - 1)
 else:
@@ -551,15 +549,15 @@ for i in range(len(all_dict) - 1):
     next_dict = all_dict[i + 1]
     first_key_current = list(current_dict.keys())[0]
     first_key_next = list(next_dict.keys())[0]
-    print(first_key_current, first_key_next)
-
+    matched_keys = []
     for key_1 in current_dict:
         for key_2 in next_dict:
-            if key_1 == key_2:
+            if key_1 == key_2 and key_1 not in matched_keys:
                 p1 = APoint((all_distance[i] + hole_width) * scale_factor_w, (all_Ground_EL[i] - float(current_dict[key_1])) * scale_factor_h)
                 p2 = APoint((all_distance[i + 1]) * scale_factor_w, (all_Ground_EL[i + 1] - float(next_dict[key_2])) * scale_factor_h)
                 line = acad.AddLine(p1, p2)
                 line.LineWeight = 5
+                matched_keys.append(key_1)
 
     if first_key_current == first_key_next:
         p1 = APoint((all_distance[i] + hole_width) * scale_factor_w, 
