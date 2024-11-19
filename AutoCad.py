@@ -303,35 +303,26 @@ for index, sheet_name in enumerate(sheet_names[1:], start=1):
     #讀取Layer列的數字
     previous_layer = 0
     y1=Ground_EL
-
     num_element=0
-    
     Layer = df.iloc[:, 20]
     Layer=Layer[5:]
-    print('Layer:', Layer)
     Layer=Layer.dropna()
-    print('Layer:', Layer)
-
     depth = df.iloc[:, 0]
     depth=depth[5:]
     depth=depth.dropna()
-
     hatch_num=df.iloc[:, 21]
     hatch_num=hatch_num[5:]
     hatch_num=hatch_num.dropna()
     hatch_num=hatch_num.tolist()
-
     spt_n = df.iloc[:, 5]
     spt_n=spt_n[5:]
-
     data_dict=dict(zip(hatch_num,Layer))
     all_dict.append(data_dict)
-
 
     # Layer列數字迭代
     t=0
     # for index, sheet_name in enumerate(sheet_names):
-    for layer ,spt ,depth in zip(Layer,spt_n,depth):
+    for layer in Layer:
         print('layer:', layer)
         times=len(Layer)
         y2=Ground_EL-layer
@@ -384,6 +375,7 @@ for index, sheet_name in enumerate(sheet_names[1:], start=1):
         if t==times:
             break
         #---------------------------------------------------------------------------------------------------------------------
+    for depth,spt in zip(depth,spt_n):
         #深度迭代
         if Ground_EL>ruler_top:
             ruler_top=Ground_EL
