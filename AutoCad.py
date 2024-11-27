@@ -160,6 +160,14 @@ for i, row in df.iterrows():
             wb = openpyxl.load_workbook(file_path,data_only=True)
             s1=wb.worksheets[0]
             scale_factor_h=(s1.cell(i+2,j+2).value)
+        else:
+            # 錯誤視窗
+            root = tk.Tk()
+            root.title("錯誤視窗")
+            root.geometry("300x150")
+            # 請填入長度比例
+            tk.Label(root, text="請填入長度比例",font = ('Times New Roman',16 )).pack(padx=10, pady=15)
+            tk.Button(root, text="關閉",font=('Times New Roman',14), command=root.destroy).pack(pady=30)
 
 keyword='寬度比例'
 position=[]
@@ -174,7 +182,13 @@ for i, row in df.iterrows():
             wb = openpyxl.load_workbook(file_path,data_only=True)
             s1=wb.worksheets[0]
             scale_factor_w=(s1.cell(i+2,j+2).value)
-            
+        else:
+            # 錯誤視窗
+            root = tk.Tk()
+            root.title("錯誤視窗")
+            root.geometry("300x150")
+            # 請填入長度比例
+            tk.Label(root, text="請填入寬度比例",font = ('Times New Roman',16 )).pack
 
 # 印出每個工作表的資料
 p1=(0,0)
@@ -209,10 +223,10 @@ for index, sheet_name in enumerate(sheet_names[1:], start=1):
         root.geometry("300x150")
         
         # Create and pack the label to display the message
-        tk.Label(root, text="Please enter Ground EL",font = ('Times New Roman',16 )).pack(padx=10, pady=15)
+        tk.Label(root, text=f"{sheet_name}請輸入孔位高程",font = ('Times New Roman',16 )).pack(padx=10, pady=15)
          
         # Create and pack the button to close the window
-        tk.Button(root, text="close",font=('Times New Roman',14), command=root.destroy).pack(pady=30)
+        tk.Button(root, text="關閉",font=('Times New Roman',14), command=root.destroy).pack(pady=30)
 
         # Run the Tkinter event loop to show the window
         root.mainloop()
@@ -220,8 +234,16 @@ for index, sheet_name in enumerate(sheet_names[1:], start=1):
     #位置distance
     N_2=df.iloc[1,1]
     E_2 = df.iloc[2, 1]
+    
     if pd.isna(N_2) or pd.isna(E_2):
         distance=25
+        # 報錯視窗
+        root = tk.Tk()
+        root.title('報錯視窗')
+        # Create and pack the label to display the message
+        tk.Label(root, text=f"{sheet_name}沒有經緯度，孔距為25m",font = ('Times New Roman',16 )).pack(padx=10, pady=15)
+        # Create and pack the button to close the window
+        tk.Button(root, text="關閉",font=('Times New Roman',14), command=root.destroy).pack(pady=30)
 
     if index==1:
         distance=15
@@ -268,6 +290,22 @@ for index, sheet_name in enumerate(sheet_names[1:], start=1):
 #------------------------------------------------------------------------------------------------------------------------------------       
     #地下水位
     GWL = df.iloc[1, 5]
+    # 如果地下水位是 NaN
+    # 報錯視窗
+    if math.isnan(GWL):
+        # Create a Tkinter window to display the error message
+        root = tk.Tk()
+        root.title("錯誤視窗")
+        root.geometry("300x150")
+        
+        # Create and pack the label to display the message
+        tk.Label(root, text=f"{sheet_name}請輸入地下水位",font = ('Times New Roman',16 )).pack(padx=10, pady=15)
+         
+        # Create and pack the button to close the window
+        tk.Button(root, text="關閉",font=('Times New Roman',14), command=root.destroy).pack(pady=30)
+
+        # Run the Tkinter event loop to show the window
+        root.mainloop
     GWL=Ground_EL-GWL
     GWL=round(GWL,2)
     GWL_point=APoint(distance*scale_factor_w-(6*scale_factor_w),GWL*scale_factor_h)
@@ -305,16 +343,68 @@ for index, sheet_name in enumerate(sheet_names[1:], start=1):
     y1=Ground_EL
     num_element=0
     Layer = df.iloc[:, 20]
+    # 如果 Layer 列為空
+    # 報錯視窗
+    if Layer.isnull().all():
+        # Create a Tkinter window to display the error message
+        root = tk.Tk()
+        root.title("錯誤視窗")
+        root.geometry("300x150")
+        
+        # Create and pack the label to display the message
+        tk.Label(root, text=f"{sheet_name}請輸入土層",font = ('Times New Roman',16 )).pack(padx=10, pady=15)
+         
+        # Create and pack the button to close the window
+        tk.Button(root, text="關閉",font=('Times New Roman',14), command=root.destroy).pack(pady=30)
+
+        # Run the Tkinter event loop to show the window
+        root.mainloop()
     Layer=Layer[5:]
     Layer=Layer.dropna()
+
     depth = df.iloc[:, 0]
+    # 如果 depth 列為空
+    # 報錯視窗
+    if depth.isnull().all():
+        # Create a Tkinter window to display the error message
+        root = tk.Tk()
+        root.title("錯誤視窗")
+        root.geometry("300x150")
+        
+        # Create and pack the label to display the message
+        tk.Label(root, text=f"{sheet_name}請輸入深度",font = ('Times New Roman',16 )).pack(padx=10, pady=15)
+        tk.Button(root, text="關閉",font=('Times New Roman',14), command=root.destroy).pack(pady=30)
+
     depth=depth[5:]
     depth=depth.dropna()
     hatch_num=df.iloc[:, 21]
+    # 如果 hatch_num 列為空
+    # 報錯視窗
+    if hatch_num.isnull().all():
+        # Create a Tkinter window to display the error message
+        root = tk.Tk()
+        root.title("錯誤視窗")
+        root.geometry("300x150")
+        
+        # Create and pack the label to display the message
+        tk.Label(root, text=f"{sheet_name}請輸入土層",font = ('Times New Roman',16 )).pack(padx=10, pady=15)
+        tk.Button(root, text="關閉",font=('Times New Roman',14), command=root.destroy).pack(pady=30)
+
     hatch_num=hatch_num[5:]
     hatch_num=hatch_num.dropna()
     hatch_num=hatch_num.tolist()
     spt_n = df.iloc[:, 5]
+    # 如果 spt_n 列為空
+    # 報錯視窗
+    if spt_n.isnull().all():
+        # Create a Tkinter window to display the error message
+        root = tk.Tk()
+        root.title("錯誤視窗")
+        root.geometry("300x150")
+        
+        # Create and pack the label to display the message
+        tk.Label(root, text=f"{sheet_name}請輸入SPT-N",font = ('Times New Roman',16 )).pack(padx=10, pady=15)
+        tk.Button(root, text="關閉",font=('Times New Roman',14), command=root.destroy).pack(pady=30)
     spt_n=spt_n[5:]
     data_dict=dict(zip(hatch_num,Layer))
     all_dict.append(data_dict)
@@ -434,8 +524,8 @@ for i in example_list_int:
     # 設置文字
     text = dictionary[str(i)]
     text_insert_point = APoint(legend_x + legend_width + 0.5 * scale_factor_w, text_y)
-    text_obj = acad.AddMText(text_insert_point, 1, 1 * text)
-    text_obj.Height = 1 * scale_factor_h
+    text_obj = acad.AddMText(text_insert_point, 1, text)
+    text_obj.Height = 1 * scale_factor_w
 
     # 設置圖例框
     legend_top_left = APoint(legend_x, box_y)
@@ -471,27 +561,6 @@ for i in example_list_int:
         text_y -= 2 * scale_factor_h
         box_y -= 2 * scale_factor_h
 
-#土層紀錄------------------------------------------------------------------------------------------------------------------------------------------------------
-# all_lists = []  # 創建一個空列表來存儲所有創建的列表
-# for index, sheet_name in enumerate(sheet_names):
-#     if index != 0:
-#         df = pd.read_excel(xl, sheet_name)
-#         new_list = []  # 在每次迴圈開始時創建一個新列表
-#         for layer_index, row in df.iterrows():
-#             if layer_index>=5:
-#                 LOG = row.iloc[21]
-#                 if layer_index != 0:
-#                     if not pd.isna(LOG):
-#                         new_list.append(LOG)  # 將每個 LOG 添加到新列表中
-#         all_lists.append(new_list)  # 將新列表添加到 all_lists 中
-
-
-# # 在迴圈外部檢視結果
-# for i, sheet_name in enumerate(sheet_names):
-#     if i != 0:
-#         print(sheet_name + ": " + str(all_lists[i-1]))  # 輸出 sheet_name 和相應的列表
-#         continue
-#---------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 if not math.isnan(depest):
     ruler_bottom = round(depest - 1)
@@ -501,7 +570,7 @@ else:
     root = tk.Tk()
     root.title('請填入高程Ground EL')
 
-
+# 深度尺
 ruler_top=round(ruler_top+1)
 ruler_length = round((ruler_top-ruler_bottom))
 insertion_point = APoint(0, ruler_top)
