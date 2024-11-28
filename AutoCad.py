@@ -524,7 +524,7 @@ for i in example_list_int:
     # 設置文字
     text = dictionary[str(i)]
     text_insert_point = APoint(legend_x + legend_width + 0.5 * scale_factor_w, text_y)
-    text_obj = acad.AddMText(text_insert_point, 1, text)
+    text_obj = acad.AddMText(text_insert_point, 0.5, text)
     text_obj.Height = 1 * scale_factor_w
 
     # 設置圖例框
