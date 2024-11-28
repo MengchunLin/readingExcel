@@ -185,6 +185,7 @@ def insert_image(ws, start_row: int):
     img.width, img.height = 550, 60
     target_cell = f'G{start_row}'
     ws.add_image(img, target_cell)
+    print(img)
 
 def add_text_and_styles(ws, start_row: int):
     cells_to_update = [
@@ -535,10 +536,11 @@ def process_worksheet(sheet_name: str, xl: pd.ExcelFile, new_wb: Workbook, proje
                 for cell_range in [f'K{insert_position}', f'L{insert_position}', f'M{insert_position}', f'N{insert_position}', f'O{insert_position}', f'P{insert_position}', f'Q{insert_position}', f'R{insert_position}', f'S{insert_position}', f'T{insert_position}']:
                     ws[cell_range].font = Font(name='Times New Roman', size=12, bold=False)
                     ws[cell_range].alignment = Alignment(horizontal='center', vertical='center')
-    print(hatch_num)
+
     # 插入圖片
     previous_insert_position = 0
     end_row = 0
+    print
     for insert_position, hatch in zip(insert_position_list, hatch_num):
         unit_height = 21
         start_row = insert_position
