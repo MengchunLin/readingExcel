@@ -462,7 +462,7 @@ def process_worksheet(sheet_name: str, xl: pd.ExcelFile, new_wb: Workbook, proje
             y2 = math.floor(y2) if y1 % 30 != 0 else y2 - 1
             insert_position = int(y1 + (y2 + 1) * 16)
             insert_position_list.append(insert_position)
-            # print(insert_position)
+
             Layer_depth_cell = ws[f'A{insert_position}']
             Layer_depth_cell.value = Layer_depth
             Layer_depth_cell.font = Font(name='Times New Roman', size=12)
@@ -540,18 +540,32 @@ def process_worksheet(sheet_name: str, xl: pd.ExcelFile, new_wb: Workbook, proje
     # 插入圖片
     previous_insert_position = 0
     end_row = 0
-    print
+    # insert position 去除重複值
+    # 加入數字17
+
+
+    insert_position_list = list(set(insert_position_list))  # Remove duplicates
+    insert_position_list.sort()  # Sort the list
+    print(insert_position_list)
+    print(hatch_num)
+    
     for insert_position, hatch in zip(insert_position_list, hatch_num):
         unit_height = 21
-        start_row = insert_position
-        end_row = (start_row - previous_insert_position) * unit_height
-        print('hatch:', hatch)
+        start_row = 17
+        # end_row =下一個insert_position
+        # 如果下一個insert_position不存在，則end_row為最後一個insert_position
+        end_row = insert_position_list[insert_position_list.index(insert_position) + 1] if insert_position_list.index(insert_position) + 1 < len(insert_position_list) else page * 46
+        
+        flag = False
+        n = 0
+        # 確認圖片是否有跨頁，以及跨了幾頁
+        if end_row - start_row > 46:
+            flag = True
+            for p in range(page):
+                if end_row > p * 46:
+                    n += 1
+        print('n:',n)
 
-        import ollieFunction 
-        # Corrected file path formatting
-        image_path = f'./png/{hatch}.png'
-        ollieFunction.insert_img(ws, start_row, image_path, end_row)
-        end_row = start_row
 
                 
                 
