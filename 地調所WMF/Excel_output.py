@@ -536,23 +536,60 @@ def process_worksheet(sheet_name: str, xl: pd.ExcelFile, new_wb: Workbook, proje
                 for cell_range in [f'K{insert_position}', f'L{insert_position}', f'M{insert_position}', f'N{insert_position}', f'O{insert_position}', f'P{insert_position}', f'Q{insert_position}', f'R{insert_position}', f'S{insert_position}', f'T{insert_position}']:
                     ws[cell_range].font = Font(name='Times New Roman', size=12, bold=False)
                     ws[cell_range].alignment = Alignment(horizontal='center', vertical='center')
-
+    
+    import ollieFunction
     # 插入圖片
-    previous_insert_position = 0
     end_row = 0
-    print
+    # insert_position_list刪除重複值
+    insert_position_list = list(set(insert_position_list))
+    insert_position_list.sort()
+    start_row = 17
+    unit_height=21
+    max_rows=47
+    current_page = 17
+    current_row = start_row
+    unit_height = 21
+    page_start_row = 17
+    print(insert_position_list)
+    
     for insert_position, hatch in zip(insert_position_list, hatch_num):
-        unit_height = 21
-        start_row = insert_position
-        end_row = (start_row - previous_insert_position) * unit_height
-        print('hatch:', hatch)
-
-        import ollieFunction 
-        # Corrected file path formatting
         image_path = f'./png/{hatch}.png'
-        ollieFunction.insert_img(ws, start_row, image_path, end_row)
-        end_row = start_row
+        print(hatch)
+        end_row = insert_position
+        # 計算圖片高度
+        image_height = unit_height * (end_row - current_row)
+        available_space = max_rows - (current_row - page_start_row)
+        # 判斷是否會超出當前頁面的剩餘空間
+        if image_height / unit_height > available_space:
+            print('跨頁')
+            # 插入當前頁面的部分
+            partial_end_row = end_row
+            partial_height = unit_height * (partial_end_row - current_row)
+            print(f"插入圖片到第{current_page}頁，行範圍: {current_row}-{partial_end_row}")
+            ollieFunction.insert_img(ws, current_row, image_path, partial_height)
 
+            # 更新到下一頁
+            current_page += 1
+            page_start_row += 17
+            current_row = page_start_row
+
+            # 插入剩餘部分
+            remaining_height = unit_height * (end_row - current_row)
+            print(f"插入圖片到第{current_page}頁，行範圍: {current_row}-{end_row}")
+            ollieFunction.insert_img(ws, current_row, image_path, remaining_height)
+        else:
+            print('不跨頁')
+            # 如果起始跟結束同一行
+            if current_row == end_row:
+                ollieFunction.insert_img(ws, current_row, image_path, unit_height)
+            else:
+                # 不需要跨頁，直接插入
+                print(f"插入圖片到第{current_page}頁，行範圍: {current_row}-{end_row}")
+                ollieFunction.insert_img(ws, current_row, image_path, image_height)
+            # 更新行號
+        current_row = end_row
+
+    print("所有圖片插入完成。")
                 
                 
 def main():

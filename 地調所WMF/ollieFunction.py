@@ -40,5 +40,5 @@ def insert_img(ws:Workbook,start_row:int,image_path, target_height):
         result_img = img
     result_img.save('temp.png')
     insert_img = Image('temp.png')
-    ws.add_image(insert_img, f'D{start_row}')
+    ws.add_image(insert_img, f'C{start_row}')
 

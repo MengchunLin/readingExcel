@@ -217,19 +217,21 @@ for index, sheet_name in enumerate(sheet_names[1:], start=1):
     all_Ground_EL.append(Ground_EL)
     # 報錯視窗
     if math.isnan(Ground_EL):
-        # Create a Tkinter window to display the error message
-        root = tk.Tk()
-        root.title("錯誤視窗")
-        root.geometry("300x150")
-        
-        # Create and pack the label to display the message
-        tk.Label(root, text=f"{sheet_name}請輸入孔位高程",font = ('Times New Roman',16 )).pack(padx=10, pady=15)
-         
-        # Create and pack the button to close the window
-        tk.Button(root, text="關閉",font=('Times New Roman',14), command=root.destroy).pack(pady=30)
+    # 檢查是否已經有一個視窗存在
+        if not hasattr(root, 'winfo_exists') or not root.winfo_exists():
+            # Create a Tkinter window to display the error message
+            root = tk.Tk()
+            root.title("錯誤視窗")
+            root.geometry("300x150")
+            
+            # Create and pack the label to display the message
+            tk.Label(root, text=f"{sheet_name}請輸入孔位高程", font=('Times New Roman', 16)).pack(padx=10, pady=15)
+            
+            # Create and pack the button to close the window
+            tk.Button(root, text="關閉", font=('Times New Roman', 14), command=root.destroy).pack(pady=30)
 
-        # Run the Tkinter event loop to show the window
-        root.mainloop()
+            # Run the Tkinter event loop to show the window
+            root.mainloop()
 #------------------------------------------------------------------------------------------------------------------------------------
     #位置distance
     N_2=df.iloc[1,1]

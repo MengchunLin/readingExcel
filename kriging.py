@@ -89,10 +89,10 @@ data_2 = pd.read_excel(processed_files[1])
 
 # 定義鑽孔位置
 borehole_position_1 = 0
-borehole_position_2 = 1580.53
+borehole_position_2 = 2700
 
-weight_1 = 0.5
-weight_2 = 0.5
+weight_1 = 0.6814157314379417
+weight_2 = 0.3185842685620584
 
 # 定義顏色映射
 color_mapping = {
@@ -841,8 +841,8 @@ for layer in layers:
 # 添加鑽孔位置線
 ax.axvline(x=borehole_position_1, color='black', linestyle='--', linewidth=1, label='Borehole 1')
 ax.axvline(x=borehole_position_2, color='black', linestyle='--', linewidth=1, label='Borehole 2')
-ax.axvline(x=780, color='black', linestyle='--', linewidth=1, label='Borehole 2')
-ax.axvline(x=785, color='black', linestyle='--', linewidth=1, label='Borehole 2')
+ax.axvline(x=910, color='black', linestyle='--', linewidth=1, label='Borehole 2')
+ax.axvline(x=915, color='black', linestyle='--', linewidth=1, label='Borehole 2')
 
 # 設置圖例
 ax.legend(handles=legend_handles, loc='upper right', bbox_to_anchor=(1.15, 1))
